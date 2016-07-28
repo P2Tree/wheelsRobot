@@ -2,13 +2,6 @@
 #define GY953_COM_H_0EYLRUGX
 
 /**
- * *    GLOBLE PARAMETER
- */
-static float angle_x;
-static float angle_y;
-static float angle_z;
-
-/**
  * *    PARAMETER
  */
 #define MAXLEN      11
@@ -49,7 +42,43 @@ static float angle_z;
  * *    FUNCTIONS
  * */
 
-static int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3);
+extern int gy953Init(unsigned char *command);
+
+/**
+ * @func: gy953Close     use to close uart
+ * @retval:             0 is down
+ * */
+extern int gy953Close(int fd);
+
+
+/**
+ * @func: gy953ReceiveData   use to receive date from device
+ * @param: fd           file descriptor
+ * @param: command      string used to catch data
+ * @param: maxlen       allowed maximum length of receive data
+ * @retval:             if catch data, return length of data, else return -1
+ * */
+extern int gy953ReceiveData(int fd, unsigned char *command, unsigned int maxlen);
+
+/**
+ * @func: gy953SendCommand   use to send data to device
+ * @param: fd           file descriptor
+ * @param: command    data
+ * @param: len        length of data
+ * @retval:         0 is down
+ * */
+extern int gy953SendCommand(int fd, unsigned char *command, unsigned int len);
+
+/**
+ * @func:   analysisEulerangle      analysis data of euler angle
+ * @param:  originData              received data
+ * @param:  len                     length of received data
+ * @param:  data1                   return angle x axis
+ * @param:  data2                   return angle y axis
+ * @param:  data3                   return angle z axis
+ * @retval:                         0 is down, -1 is error
+ * */
+extern int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3);
 
 /**
  * @func:   analysisAccelerometer   analysis data of accelerometer
@@ -60,73 +89,7 @@ static int analysisEulerangle(unsigned char *originData, int len, float *data1, 
  * @param:  data3                   return data group 3
  * @retval:                         0 is down and -1 is wrong
  **/
-static int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3);
+extern int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3);
 
-/**
- * @func:   analysisData    use to check out all of data from received data(string)
- * @param:  originData      received data(string)
- * @param:  len             length of received data
- * @param:  data1           data 1 in received string, will return to what call it
- * @param:  data2           data 2 in received string, will return to what call it
- * @param:  data3           data 3 in received string, will return to what call it
- * @retval:                 0 is down, -1 is data wrong
- * */
-static int analysisData(unsigned char *originData, int len, int *data1, int *data2, int *data3);
-
-/**
- * @func: checkCS       check cs bit in received data
- * @param: data         received data
- * @param: len          length of received data
- * @retval:             0 is right and -1 is wrong cs.
- */
-static int checkCS(unsigned char *data, int len);
-
-/**
- * @func: constructCommand  construct a command to send to target device
- * @param: hexCommand   function mark of device
- * @param: command      constructed command
- * @retval:             0 is down;
- */
-static int constructCommand(int hexCommand, unsigned char *command);
-
-/**
- * @func: sendCommand   use to send data to device
- * @param: fd           file descriptor
- * @param: command    data
- * @param: len        length of data
- * @retval:         0 is down
- * */
-static int sendCommand(int fd, unsigned char *command, unsigned int len);
-
-/**
- * @func: receiveData   use to receive date from device
- * @param: fd           file descriptor
- * @param: command      string used to catch data
- * @param: maxlen       allowed maximum length of receive data
- * @retval:             if catch data, return length of data, else return -1
- * */
-static int receiveData(int fd, unsigned char *command, unsigned int maxlen);
-
-/**
- * @func: uartInit      use to initialization uart, call functions from gy953_uart file
- * @retval:             0 is down
- * */
-static int uartInit(void);
-
-/**
- * @func: uartClose     use to close uart
- * @retval:             0 is down
- * */
-static int uartClose(int fd);
-
-/**
- * @func: testReadWrite     test read and write function of device
- * @param: fd               file descriptor
- * @param: recData          receive data
- * @param: sendData         send data
- **/
-static void testReadWrite(int fd, unsigned char *recData, unsigned char *sendData);
-
-void *gy953Thread(void);
 
 #endif /* end of include guard: GY953_COM_H_0EYLRUGXGY953_COM_H_0EYLRUGX */

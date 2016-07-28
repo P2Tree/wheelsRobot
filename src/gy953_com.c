@@ -14,48 +14,45 @@
 #include "gy953_com.h"
 
 /**
- * three axis euler angles 
- * In this project, we only use angle_z to check robot direction
+ * *    LOCAL FUNCTION DECLARATION
  * */
 
-/* x is alpha angle, roll angle, value from -PI to PI */
-static float angle_x = 0.0;
-/* y is gamma angle, pitch angle, value from -1/2PI to 1/2PI */
-static float angle_y = 0.0;
-/* z is beta angle, yaw angle, value from -PI to PI */
-static float angle_z = 0.0;
+/**
+ * @func:   analysisData    use to check out all of data from received data(string)
+ * @param:  originData      received data(string)
+ * @param:  len             length of received data
+ * @param:  data1           data 1 in received string, will return to what call it
+ * @param:  data2           data 2 in received string, will return to what call it
+ * @param:  data3           data 3 in received string, will return to what call it
+ * @retval:                 0 is down, -1 is data wrong
+ * */
+static int analysisData(unsigned char *originData, int len, int *data1, int *data2, int *data3);
 
-static int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
-    int da1, da2, da3;
-    if (-1 == analysisData(originData, len, &da1, &da2, &da3)) {
-        printf("analysis eulerangle wrong\n");
-        return -1;
-    }
-    if (da1 > 32768 || da1 == 32768)
-        da1 = -(65535-da1);
-    if (da2 > 32768 || da2 == 32768)
-        da2 = -(65535-da2);
-    if (da3 > 32768 || da2 == 32768)
-        da3 = -(65535-da3);
-    *data1 = (float)da1 / 100;
-    *data2 = (float)da2 / 100;
-    *data3 = (float)da3 / 100;
-    return 0;
-}
+/**
+ * @func: checkCS       check cs bit in received data
+ * @param: data         received data
+ * @param: len          length of received data
+ * @retval:             0 is right and -1 is wrong cs.
+ */
+static int checkCS(unsigned char *data, int len);
 
-static int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3) {
-    if ( -1 == analysisData(originData, len, data1, data2, data3)) {
-        printf("analysis accelerometer wrong\n");
-        return -1;
-    }
-    if (*data1 > 32768 || *data1 == 32768) {
-        *data1 = -(65535-*data1);
-    }
-    if (*data2 > 32768 || *data2 == 32768) {
-        *data2 = -(65535-*data2);
-    }
-    return 0;
-}
+/**
+ * @func: constructCommand  construct a command to send to target device
+ * @param: hexCommand   function mark of device
+ * @param: command      constructed command
+ * @retval:             0 is down;
+ */
+static int constructCommand(int hexCommand, unsigned char *command);
+
+/**
+ * @func: uartInit      use to initialization uart, call functions from gy953_uart file
+ * @retval:             0 is down
+ * */
+static int uartInit(void);
+
+/**
+ * *    LOCAL FUNCTION DEFINATION
+ * */
 
 static int analysisData(unsigned char *originData, int len, int *data1, int *data2, int *data3) {
     int i=0;
@@ -98,21 +95,7 @@ static int constructCommand(int hexCommand, unsigned char *command) {
     return 0;
 }
 
-static int sendCommand(int fd, unsigned char *command, unsigned int len) {
-    int flag;
-    flag = write(fd, command, len);
-    tcflush(fd, TCOFLUSH);
-    return flag;
-}
 
-static int receiveData(int fd, unsigned char *command, unsigned int maxlen) {
-    unsigned int nread = 0;
-    nread = read(fd, command, maxlen);
-    if (!nread)
-        return -1;
-    tcflush(fd, TCIFLUSH);
-    return nread;
-}
 
 static int uartInit(void) {
     int fd;
@@ -127,76 +110,72 @@ static int uartInit(void) {
     return fd;
 }
 
-static int uartClose(int fd) {
+/**
+ * *    PUBLIC FUNCTION DEFINATION
+ * */
+int gy953Close(int fd) {
     close(fd);
     return 0;
 }
 
-static void testReadWrite(int fd, unsigned char *recData, unsigned char *sendData) {
-    int i;
-    /* Test receive */
-    int receiveLen;
-    receiveLen = receiveData(fd, recData, MAXLEN);
-    if (receiveLen > 0) {
-        printf("receive: %s\n", recData);
+
+int gy953Init(unsigned char *command) {
+    int fd;
+    fd = uartInit();
+    if (-1 == fd) {
+        printf("gy953 uart init error.\n");
+        return -1;
     }
-    sleep(1);
-    /*Test send*/
-    constructCommand(BAUDRATE_9600, sendData);
-    printf("command is: 0x");
-    for (i=0; i<3; i++)
-        printf("%02x", sendData[i]);
-    printf("\n");
-    if (sendCommand(fd, sendData, WRITELEN)) {
-        printf("send error\n");
-    }
-    sleep(1);
+    /* constructCommand(AUTODATA_ACCELEROMETER, command); */
+    /* constructCommand(AUTODATA_EULERANGLE, command); */
+    constructCommand(EULERANGLE, command);
+    return fd;
 }
 
-void *gy953Thread(void) {
-    int fd;
-    int i;
-    unsigned char recData[MAXLEN];
-    int receiveLen = 0;
-    unsigned char sendData[WRITELEN] = "\0"; 
-    int wflag;
-    fd = uartInit();
-    printf("GY953 init down.\n");
-    /* constructCommand(AUTODATA_ACCELEROMETER, sendData); */
-    /* constructCommand(AUTODATA_EULERANGLE, sendData); */
-    constructCommand(EULERANGLE, sendData);
-    while(1) {
-        wflag = sendCommand(fd, sendData, WRITELEN);
-        if (-1 == wflag) {
-            printf("wflag = %d", wflag);
-            printf("send error\n");
-            for (i=0; i<wflag; i++)
-                printf("%02x ", sendData[i]);
-            printf("\n");
-            printf("---\n");
-            continue;
-        }
-        /* printf("send.\n"); */
-        sleep(1);
-        receiveLen = receiveData(fd, recData, MAXLEN);
-        if ( -1 == analysisEulerangle(recData, receiveLen, &angle_x, &angle_y, &angle_z)) {
-            printf("receive error\n");
-            printf("receiveLen: %d\n", receiveLen);
-            for (i=0; i<receiveLen; i++)
-                printf("%02x ", recData[i]);
-            printf("\n");
-            printf("---\n");
-            continue;
-        }
-        //analysisAccelerometer(recData, receiveLen, &accData1,&accData2, &accData3);
-        printf("angle x: %.2f ", angle_x);
-        printf("angle y: %.2f ", angle_y);
-        printf("angle z: %.2f\n", angle_z);
-        angle_x = 0;
-        angle_y = 0;
-        angle_z = 0;
-    }
+int gy953ReceiveData(int fd, unsigned char *command, unsigned int maxlen) {
+    unsigned int nread = 0;
+    nread = read(fd, command, maxlen);
+    if (!nread)
+        return -1;
+    tcflush(fd, TCIFLUSH);
+    return nread;
+}
 
-    uartClose(fd);
-    return (void *)0;
+int gy953SendCommand(int fd, unsigned char *command, unsigned int len) {
+    int flag = 0;
+    flag = write(fd, command, len);
+    tcflush(fd, TCOFLUSH);
+    return flag;
+}
+
+int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
+    int da1, da2, da3;
+    if (-1 == analysisData(originData, len, &da1, &da2, &da3)) {
+        printf("analysis eulerangle wrong\n");
+        return -1;
+    }
+    if (da1 > 32768 || da1 == 32768)
+        da1 = -(65535-da1);
+    if (da2 > 32768 || da2 == 32768)
+        da2 = -(65535-da2);
+    if (da3 > 32768 || da2 == 32768)
+        da3 = -(65535-da3);
+    *data1 = (float)da1 / 100;
+    *data2 = (float)da2 / 100;
+    *data3 = (float)da3 / 100;
+    return 0;
+}
+
+int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3) {
+    if ( -1 == analysisData(originData, len, data1, data2, data3)) {
+        printf("analysis accelerometer wrong\n");
+        return -1;
+    }
+    if (*data1 > 32768 || *data1 == 32768) {
+        *data1 = -(65535-*data1);
+    }
+    if (*data2 > 32768 || *data2 == 32768) {
+        *data2 = -(65535-*data2);
+    }
+    return 0;
 }
