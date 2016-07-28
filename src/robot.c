@@ -9,8 +9,8 @@ void *myThread2(void) {
     int i;
     for (i=0; i<100; i++) {
         printf("This is the cy30 pthread.\n");
-        yaw = getYawAngle();
-        printf("yaw = %.2f\n", yaw);
+        origin_yaw = getYawAngle();
+        printf("origin yaw = %.2f\n", origin_yaw);
         sleep(1);
     }
     return (void *)0;
@@ -71,3 +71,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
