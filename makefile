@@ -6,13 +6,13 @@ DIR_BIN = ./bin
 SRC = $(wildcard ${DIR_SRC}/*.c)
 OBJ = $(patsubst %.c,${DIR_OBJ}/%.o,$(notdir ${SRC}))
 
-TAG = robot
+TAG = ks103#robot
 BIN_TAG = ${DIR_BIN}/${TAG}
 
-CC = arm-fsl-linux-gnueabi-gcc
-#CC = clang
+#CC = arm-fsl-linux-gnueabi-gcc
+CC = clang
 CFLAGS = -pthread -I${DIR_INC}
-CFLAGS += -Wall
+#CFLAGS += -Wall
 
 ${BIN_TAG} : ${OBJ}
 	$(CC) $(CFLAGS) $(OBJ) -o $@

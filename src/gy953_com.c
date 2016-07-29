@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <termios.h>        // POSIX terminal input/output header
-#include "gy953_uart.h"
+#include <fcntl.h>
 #include "gy953_com.h"
 
 /**
@@ -49,6 +49,23 @@ static int constructCommand(int hexCommand, unsigned char *command);
  * @retval:             0 is down
  * */
 static int uartInit(void);
+
+/**
+ * @func: setOpt    use to setting uart options
+ * @param: fd       file descriptor
+ * @param: nSpeed   uart transfer speed
+ * @param: nBits    uart transfer bits
+ * @param: nEvent   uart parity bit
+ * @param: nStop    uart stop bit
+ * @param:          0 is down
+ **/
+static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop);
+
+/**
+ * @func: openPort  use to open uart
+ * @retval:         0 is down
+ **/
+static int openPort(void);
 
 /**
  * *    LOCAL FUNCTION DEFINATION
@@ -95,8 +112,6 @@ static int constructCommand(int hexCommand, unsigned char *command) {
     return 0;
 }
 
-
-
 static int uartInit(void) {
     int fd;
     if ((fd = openPort()) < 0) {
@@ -106,6 +121,109 @@ static int uartInit(void) {
     if (setOpt(fd, 115200, 8, 'N', 1) < 0) {
         perror("set_opt error");
         return -1;
+    }
+    return fd;
+}
+
+static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
+    struct termios newtio, oldtio;
+    if (tcgetattr(fd, &oldtio) != 0) {
+        perror("Backup SerialSetting");
+        return -1;
+    }
+    newtio.c_cflag = 0;
+    newtio.c_iflag = 0;
+    newtio.c_lflag = 0;
+    newtio.c_oflag = 0;
+
+    newtio.c_cflag |= CLOCAL | CREAD ;
+
+    // set data bits
+    switch(nBits) {
+    case 7:
+        newtio.c_cflag &= ~CSIZE;           // zero data bits control
+        newtio.c_cflag |= CS7;              // set data bits to 7 bits
+        break;
+    case 8:
+        newtio.c_cflag &= ~CSIZE;           // zero data bits control;
+        newtio.c_cflag |= CS8;              // set data bits to 8 bits
+        break;
+    default:
+        perror("Set_opt wrong bits");
+        return -1;
+    }
+
+    // set parity bit
+    switch(nEvent) {
+    case 'O':
+        newtio.c_cflag &= ~PARENB;          // clear even mode
+        newtio.c_cflag |= PARODD;           // set parity bit to odd mode
+        newtio.c_iflag |= (INPCK |          // allow to execute parity
+                                            //error if a parity error occured.
+                            ISTRIP);        // reset normal data to 7 bits
+                                            //and leave last bit to parity bit.
+        break;
+    case 'E':
+        newtio.c_cflag |= PARENB;           // set parity bit to even mode
+        newtio.c_cflag &= ~PARODD;          // clear odd mode
+        newtio.c_iflag |= (INPCK | ISTRIP); // same with odd setting code
+        break;
+    case 'N':
+        newtio.c_cflag &= ~PARENB;              // no check bit
+        break;
+    default:
+        perror("Set_opt wrong event");
+        return -1;
+    }
+
+    // set bandrate
+    switch(nSpeed) {
+    case 9600:
+        cfsetispeed(&newtio, B9600);    // input speed
+        cfsetospeed(&newtio, B9600);    // output speed
+        break;
+    case 115200:
+        cfsetispeed(&newtio, B115200);
+        cfsetospeed(&newtio, B115200);
+        break;
+        // you can add other speed items at here.
+    default:
+        perror("Set_opt wrong speed OR other speed");
+        return -1;
+    }
+
+    // set stop bits
+    if ( 1 == nStop)
+        newtio.c_cflag &= ~CSTOPB;      // stop 1 bit
+    else if ( 2 == nStop)
+        newtio.c_cflag |= CSTOPB;       // stop 2 bits
+
+    newtio.c_cc[VTIME] = 0;             // waitting time
+    newtio.c_cc[VMIN] = 0;              // min receive data
+
+    tcflush(fd, TCIOFLUSH);             // before clean input & output buffer
+
+    if ((tcsetattr(fd, TCSANOW, &newtio)) != 0) {   // set argument and take effect at once
+        tcsetattr(fd, TCSANOW, &oldtio);    // if wrong, get the old settings
+        perror("Set_opt com set error");
+        return -1;
+    }
+
+    tcflush(fd, TCIOFLUSH);             // after clean input & output buffer
+    return 0;
+}
+
+static int openPort() {
+    int fd;
+    int flag;
+    fd = open("/dev/ttymxc3", O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if (-1 == fd) {
+        perror ("Can't Open Serial Port");
+        return -1;
+    }
+
+    if (isatty(STDIN_FILENO) == 0) {        // check tty
+        printf("standard input is not a terminal device \n");
     }
     return fd;
 }
