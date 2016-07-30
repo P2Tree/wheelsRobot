@@ -176,7 +176,8 @@ void distanceMultipleKS103(unsigned int fd, const unsigned char argAddr, const u
         }
         else {
             /* printf("sensor.%d distance is %d mm\n", addr_count+1, distance); */
-            result[addr_count] = distance;
+            *(result + addr_count) = distance;
+            distance = 0;
         }
     }
 }

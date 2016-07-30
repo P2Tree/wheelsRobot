@@ -52,10 +52,10 @@ void *ks103Thread(){
 }
 
 void showKS103Distance() {
-    printf("KS103 1: %dmm ", KS103ADDRESS_1, distanceOfSensor1);
-    printf("KS103 2: %dmm ", KS103ADDRESS_2, distanceOfSensor2);
-    printf("KS103 3: %dmm ", KS103ADDRESS_3, distanceOfSensor3);
-    printf("KS103 4: %dmm ", KS103ADDRESS_4, distanceOfSensor4);
+    printf("KS103 1: %dmm ", distanceOfSensor1);
+    printf("KS103 2: %dmm ", distanceOfSensor2);
+    printf("KS103 3: %dmm ", distanceOfSensor3);
+    printf("KS103 4: %dmm ", distanceOfSensor4);
     printf("\n");
 }
 
