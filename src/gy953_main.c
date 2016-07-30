@@ -4,7 +4,6 @@
 #include "gy953_main.h"
 #include "gy953_com.h"
 
-//extern void uartInit();
 /**
  * three axis euler angles 
  * In this project, we only use angle_z to check robot direction
@@ -17,10 +16,9 @@ static float angle_y = 0.0;
 /* z is beta angle, yaw angle, value from -PI to PI */
 static float angle_z = 0.0;
 
-void *gy953Thread() {
+void *gy953Thread(char workMode) {
     int fd;
     int i;
-    unsigned char workMode;
     unsigned char recData[MAXLEN];
     int receiveLen = 0;
     unsigned char sendData[WRITELEN] = "\0"; 
@@ -55,13 +53,14 @@ void *gy953Thread() {
         }
         /* printf("receive.\n"); */
         analysisEulerangle(recData, receiveLen, &angle_x, &angle_y, &angle_z);
+
         /* WORK MODE */
-        workMode = 'n';
         switch (workMode) {
             case 'g': showEulerAngle();
                       break;
             case 'n': break;
-            default : break;
+            default : printf("'g' is show euler angle, 'n' is not.\n");
+                      break;
         }
     }
     gy953Close(fd);

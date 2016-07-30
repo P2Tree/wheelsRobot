@@ -7,6 +7,8 @@
 #include <sys/ioctl.h>
 #include <string.h>
 
+#include "ks103_com.h"
+
 /**
  * *    LOCAL FUNCTION DECLARATION
  * */
@@ -146,6 +148,9 @@ static unsigned char change_directory(unsigned int fd, unsigned char addr, unsig
 
 }
 
+/**
+ * *    PUBLIC FUNCTION DEFINITION
+ * */
 unsigned int distanceAKS103(unsigned int fd, const char *argAddr) {
     unsigned int addr = strtol(argAddr, NULL, 0);
     unsigned int distance = 0;
@@ -225,41 +230,3 @@ unsigned int KS103Init() {
     return fd;
 }
 
-int main(int argc, char const *argv[]) {
-    int fd;
-
-    fd = KS103Init();
-
-    // to get the distance from the i2c device which user giving address 
-    if(3 == argc && !strcmp(argv[1], "-d")) {
-        while(1)
-            distanceAKS103(fd, argv[2]);
-    }
-
-    // to get the distance from the i2c device which user giving address, from addr to check argv[3] times to each i2c device. For example, if you input: "./ks103 -m 0x72 5" , not contain quot, that is to say, check 0x72, 0x73, 0x74, 0x75, 0x76 i2c devices.
-     else if(4 == argc && !strcmp(argv[1], "-m")) {
-         distanceMultipleKS103(fd, argv[2], argv[3]);
-     }
-
-     // to change the address to the i2c device which user giving address, the last argument: argv[2], is the address you want to change to.
-     else if(4 == argc && !strcmp(argv[1], "-c")) {
-         changeKS103Address(fd, argv[2], argv[3]);
-     }
-
-     // to read a register value from the i2c device which user giving address, in attention that this mode don't send any words to i2c device
-     else if(4 == argc && !strcmp(argv[1], "-r")) {
-         readKS103Register(fd, argv[2], argv[3]);
-     }
-
-     // to set a register value to the i2c device which user giving address, argv[2] is address, argv[3] is register number, argv[4] is value you want to write.
-     else if( 5 == argc && !strcmp(argv[1], "-w")) {
-         writeKS103Register(fd, argv[2], argv[3], (const char *)argv[4]);
-     }
-
-     else {
-         fprintf(stderr, USAGE_MESSAGE, argv[0], argv[0], argv[0], argv[0]);
-     }
-
-     close(fd);
-     return 0;
-}
