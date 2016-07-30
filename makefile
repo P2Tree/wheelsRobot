@@ -6,7 +6,7 @@ DIR_BIN = ./bin
 SRC = $(wildcard ${DIR_SRC}/*.c)
 OBJ = $(patsubst %.c,${DIR_OBJ}/%.o,$(notdir ${SRC}))
 
-TAG = ks103#robot
+TAG = robot
 BIN_TAG = ${DIR_BIN}/${TAG}
 
 #CC = arm-fsl-linux-gnueabi-gcc
