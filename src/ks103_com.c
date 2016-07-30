@@ -165,7 +165,7 @@ unsigned int distanceAKS103(unsigned int fd, const char *argAddr) {
     sleep(1);
 }
 
-void distanceMultipleKS103(unsigned int fd, const char *argAddr, const char *sensorNum) {
+void distanceMultipleKS103(unsigned int fd, const char *argAddr, const char *sensorNum, int *result) {
     unsigned char begin_addr = strtol(argAddr, NULL, 0);
     unsigned int i2c_devices_number = strtol(sensorNum, NULL, 0);
     unsigned char addr_count = 0;
@@ -174,10 +174,10 @@ void distanceMultipleKS103(unsigned int fd, const char *argAddr, const char *sen
         for(addr_count = 0; addr_count < i2c_devices_number; addr_count++) {
             if (get_distance(fd, begin_addr+addr_count, REG, &distance)) {
                 printf("Unable to get distance, %x", begin_addr+addr_count);
-                exit(1);
             }
             else {
                 printf("num.%d distance is %d mm\n", addr_count+1, distance);
+                result[addr_count] = distance;
             }
         }
         sleep(1);
@@ -223,10 +223,9 @@ unsigned int KS103Init() {
     int fd;
     fd = open("/dev/i2c-2", O_RDWR);
     if (fd < 0) {
-        printf("i2c open error\n");
+        printf("ks103 i2c open error\n");
         exit(1);
     }
-    printf("open i2c port success, fd = %d\n", fd);
     return fd;
 }
 

@@ -1,7 +1,11 @@
 #ifndef KS103_I2C_H_V0TRSQPI
 #define KS103_I2C_H_V0TRSQPI
 
-//#define I2C_ADDRESS    0xe8
+#define KS103ADDRESS_1  0x74
+#define KS103ADDRESS_2  0x75
+#define KS103ADDRESS_3  0x76
+#define KS103ADDRESS_4  0x77
+
 #define REG             0x02
 #define I2C_FILE_NAME   "/dev/i2c-0"
 #define USAGE_MESSAGE \
@@ -18,7 +22,7 @@
 
 unsigned char readKS103Register(unsigned int fd, const char *argAddr, const char *argReg);
 
-void distanceMultipleKS103(unsigned int fd, const char *argAddr, const char *sensorNum);
+void distanceMultipleKS103(unsigned int fd, const char *argAddr, const char *sensorNum, int *result);
 
 unsigned int distanceAKS103(unsigned int fd, const char *argAddr);
 
