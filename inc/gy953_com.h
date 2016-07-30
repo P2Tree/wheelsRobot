@@ -42,54 +42,33 @@
  * *    FUNCTIONS
  * */
 
-extern int gy953Init(unsigned char *command);
+
+/**
+ * @func:   gy953Init   initialization of gy953 module
+ * @retval:             0 is down
+ * */
+int gy953Init(void);
 
 /**
  * @func: gy953Close     use to close uart
  * @retval:             0 is down
  * */
-extern int gy953Close(int fd);
-
+int gy953Close(int fd);
 
 /**
- * @func: gy953ReceiveData   use to receive date from device
- * @param: fd           file descriptor
- * @param: command      string used to catch data
- * @param: maxlen       allowed maximum length of receive data
- * @retval:             if catch data, return length of data, else return -1
+ * @func:   GY953ConstructCommand   construct a command follow the param hexCommand
+ * @param:  hexCommand              control the command want to be constructed
+ * @param:  command                 result command
+ * @retval:                         0 is down
  * */
-extern int gy953ReceiveData(int fd, unsigned char *command, unsigned int maxlen);
+int gy953ConstructCommand(int hexCommand, unsigned char *command);
 
 /**
- * @func: gy953SendCommand   use to send data to device
- * @param: fd           file descriptor
- * @param: command    data
- * @param: len        length of data
- * @retval:         0 is down
+ * @func:   get3AxisEulerAngle      can get euler angles of 3 axis
+ * @param:  fd                      file descriptor
+ * @param:  command                 command want to send to gy953
+ * @param:  result                  get result
  * */
-extern int gy953SendCommand(int fd, unsigned char *command, unsigned int len);
-
-/**
- * @func:   analysisEulerangle      analysis data of euler angle
- * @param:  originData              received data
- * @param:  len                     length of received data
- * @param:  data1                   return angle x axis
- * @param:  data2                   return angle y axis
- * @param:  data3                   return angle z axis
- * @retval:                         0 is down, -1 is error
- * */
-extern int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3);
-
-/**
- * @func:   analysisAccelerometer   analysis data of accelerometer
- * @param:  originData              received data
- * @param:  len                     length of received data
- * @param:  data1                   return data group 1
- * @param:  data2                   return data group 2
- * @param:  data3                   return data group 3
- * @retval:                         0 is down and -1 is wrong
- **/
-extern int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3);
-
+void get3AxisEulerAngle(int fd, unsigned char *command, float *result);
 
 #endif /* end of include guard: GY953_COM_H_0EYLRUGXGY953_COM_H_0EYLRUGX */

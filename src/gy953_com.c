@@ -37,14 +37,6 @@ static int analysisData(unsigned char *originData, int len, int *data1, int *dat
 static int checkCS(unsigned char *data, int len);
 
 /**
- * @func: constructCommand  construct a command to send to target device
- * @param: hexCommand   function mark of device
- * @param: command      constructed command
- * @retval:             0 is down;
- */
-static int constructCommand(int hexCommand, unsigned char *command);
-
-/**
  * @func: uartInit      use to initialization uart, call functions from gy953_uart file
  * @retval:             0 is down
  * */
@@ -103,14 +95,6 @@ static int checkCS(unsigned char *data, int len) {
     }
 }
 
-static int constructCommand(int hexCommand, unsigned char *command) {
-    int i;
-    for (i=0; i<3; i++) {
-        command[i] = (unsigned char)((hexCommand >> ((2-i) * 8)) & 0x0000ff);
-        /* printf("%02x\n", command[i]); */
-    }
-    return 0;
-}
 
 static int uartInit(void) {
     int fd;
@@ -215,7 +199,6 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
 
 static int openPort() {
     int fd;
-    int flag;
     fd = open("/dev/ttymxc3", O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (-1 == fd) {
         perror ("Can't Open Serial Port");
@@ -229,28 +212,13 @@ static int openPort() {
 }
 
 /**
- * *    PUBLIC FUNCTION DEFINATION
+ * @func: gy953ReceiveData   use to receive date from device
+ * @param: fd           file descriptor
+ * @param: command      string used to catch data
+ * @param: maxlen       allowed maximum length of receive data
+ * @retval:             if catch data, return length of data, else return -1
  * */
-int gy953Close(int fd) {
-    close(fd);
-    return 0;
-}
-
-
-int gy953Init(unsigned char *command) {
-    int fd;
-    fd = uartInit();
-    if (-1 == fd) {
-        printf("gy953 uart init error.\n");
-        return -1;
-    }
-    /* constructCommand(AUTODATA_ACCELEROMETER, command); */
-    /* constructCommand(AUTODATA_EULERANGLE, command); */
-    constructCommand(EULERANGLE, command);
-    return fd;
-}
-
-int gy953ReceiveData(int fd, unsigned char *command, unsigned int maxlen) {
+static int gy953ReceiveData(int fd, unsigned char *command, unsigned int maxlen) {
     unsigned int nread = 0;
     nread = read(fd, command, maxlen);
     if (!nread)
@@ -259,14 +227,30 @@ int gy953ReceiveData(int fd, unsigned char *command, unsigned int maxlen) {
     return nread;
 }
 
-int gy953SendCommand(int fd, unsigned char *command, unsigned int len) {
+/**
+ * @func: gy953SendCommand   use to send data to device
+ * @param: fd           file descriptor
+ * @param: command    data
+ * @param: len        length of data
+ * @retval:         0 is down
+ * */
+static int gy953SendCommand(int fd, unsigned char *command, unsigned int len) {
     int flag = 0;
     flag = write(fd, command, len);
     tcflush(fd, TCOFLUSH);
     return flag;
 }
 
-int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
+/**
+ * @func:   analysisEulerangle      analysis data of euler angle
+ * @param:  originData              received data
+ * @param:  len                     length of received data
+ * @param:  data1                   return angle x axis
+ * @param:  data2                   return angle y axis
+ * @param:  data3                   return angle z axis
+ * @retval:                         0 is down, -1 is error
+ * */
+static int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
     int da1, da2, da3;
     if (-1 == analysisData(originData, len, &da1, &da2, &da3)) {
         printf("analysis eulerangle wrong\n");
@@ -284,7 +268,16 @@ int analysisEulerangle(unsigned char *originData, int len, float *data1, float *
     return 0;
 }
 
-int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3) {
+/**
+ * @func:   analysisAccelerometer   analysis data of accelerometer
+ * @param:  originData              received data
+ * @param:  len                     length of received data
+ * @param:  data1                   return data group 1
+ * @param:  data2                   return data group 2
+ * @param:  data3                   return data group 3
+ * @retval:                         0 is down and -1 is wrong
+ **/
+static int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3) {
     if ( -1 == analysisData(originData, len, data1, data2, data3)) {
         printf("analysis accelerometer wrong\n");
         return -1;
@@ -297,3 +290,68 @@ int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *d
     }
     return 0;
 }
+
+/**
+ * *    PUBLIC FUNCTION DEFINATION
+ * */
+
+int gy953Init() {
+    int fd;
+    fd = uartInit();
+    if (-1 == fd) {
+        printf("gy953 uart init error.\n");
+        return -1;
+    }
+    return fd;
+}
+
+int gy953Close(int fd) {
+    close(fd);
+    return 0;
+}
+
+int gy953ConstructCommand(int hexCommand, unsigned char *command) {
+    int i;
+    for (i=0; i<3; i++) {
+        command[i] = (unsigned char)((hexCommand >> ((2-i) * 8)) & 0x0000ff);
+        /* printf("%02x\n", command[i]); */
+    }
+    return 0;
+}
+
+void get3AxisEulerAngle(int fd, unsigned char *command, float *result) {
+    unsigned char recData[MAXLEN];
+    int receiveLen = 0;
+    int sendLen = 0;
+    float x = 0.0;
+    float y = 0.0;
+    float z = 0.0;
+
+    sendLen = gy953SendCommand(fd, command, WRITELEN);
+    if (-1 == sendLen) {
+        printf("send error\n");
+        /* printf("sendLen = %d", sendLen); */
+        /* for (i=0; i<sendLen; i++) */
+            /* printf("%02x ", sendData[i]); */
+        /* printf("\n---\n"); */
+        return;
+    }
+    /* printf("send.\n"); */
+    /* sleep(1); */
+    receiveLen = gy953ReceiveData(fd, recData, MAXLEN);
+    if ( -1 == receiveLen) {
+        printf("receive error\n");
+        /* printf("receiveLen: %d\n", receiveLen); */
+        /* for (i=0; i<receiveLen; i++) */
+            /* printf("%02x ", recData[i]); */
+        /* printf("\n---\n"); */
+        return;
+    }
+    /* printf("receive.\n"); */
+    analysisEulerangle(recData, receiveLen, &x, &y, &z);
+
+    result[0] = x;
+    result[1] = y;
+    result[2] = z;
+}
+

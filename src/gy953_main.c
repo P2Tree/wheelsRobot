@@ -16,43 +16,30 @@ static float angle_y = 0.0;
 /* z is beta angle, yaw angle, value from -PI to PI */
 static float angle_z = 0.0;
 
+static unsigned char command[3];
+
 void *gy953Thread() {
     int fd;
-    int i;
-    unsigned char recData[MAXLEN];
-    int receiveLen = 0;
-    unsigned char sendData[WRITELEN] = "\0"; 
-    int sendLen = 0;
+    float angleResult[3];
 
-    fd = gy953Init(sendData);
+    fd = gy953Init();
     if (-1 == fd) {
         printf("GY953 init fault.\n");
         pthread_exit((void*)1);
     }
     printf("GY953 init down.\n");
+
+    gy953ConstructCommand(EULERANGLE, command);
+
     while(1) {
-        sendLen = gy953SendCommand(fd, sendData, WRITELEN);
-        if (-1 == sendLen) {
-            printf("sendLen = %d", sendLen);
-            printf("send error\n");
-            for (i=0; i<sendLen; i++)
-                printf("%02x ", sendData[i]);
-            printf("\n---\n");
-            continue;
-        }
-        /* printf("send.\n"); */
+
+        get3AxisEulerAngle(fd, command, angleResult);
+        
+        angle_x = angleResult[0];
+        angle_y = angleResult[1];
+        angle_z = angleResult[2];
+
         sleep(1);
-        receiveLen = gy953ReceiveData(fd, recData, MAXLEN);
-        if ( -1 == receiveLen) {
-            printf("receive error\n");
-            printf("receiveLen: %d\n", receiveLen);
-            for (i=0; i<receiveLen; i++)
-                printf("%02x ", recData[i]);
-            printf("\n---\n");
-            continue;
-        }
-        /* printf("receive.\n"); */
-        analysisEulerangle(recData, receiveLen, &angle_x, &angle_y, &angle_z);
         showEulerAngle();
     }
     gy953Close(fd);
