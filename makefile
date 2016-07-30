@@ -26,10 +26,14 @@ ${OBJ} : ${DIR_OBJ}/%.o : ${DIR_SRC}/%.c
 
 # ${DIR_OBJ}/gy953_uart.o : ${DIR_INC}/gy953_uart.h
 
-.PHONY : clean cleanall
+.PHONY : clean cleanall install
+
 clean :
 	-rm -rf $(OBJ)
 cleanall :
 	-rm -rf $(BIN_TAG) $(OBJ)
+
+install :
+	./tools/autoftp.sh
 
 
