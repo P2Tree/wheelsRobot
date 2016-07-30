@@ -9,8 +9,8 @@ OBJ = $(patsubst %.c,${DIR_OBJ}/%.o,$(notdir ${SRC}))
 TAG = robot
 BIN_TAG = ${DIR_BIN}/${TAG}
 
-#CC = arm-fsl-linux-gnueabi-gcc
-CC = clang
+CC = arm-fsl-linux-gnueabi-gcc
+#CC = clang
 CFLAGS = -pthread -I${DIR_INC}
 #CFLAGS += -Wall
 

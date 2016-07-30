@@ -16,7 +16,7 @@ static float angle_y = 0.0;
 /* z is beta angle, yaw angle, value from -PI to PI */
 static float angle_z = 0.0;
 
-void *gy953Thread(char workMode) {
+void *gy953Thread() {
     int fd;
     int i;
     unsigned char recData[MAXLEN];
@@ -53,15 +53,7 @@ void *gy953Thread(char workMode) {
         }
         /* printf("receive.\n"); */
         analysisEulerangle(recData, receiveLen, &angle_x, &angle_y, &angle_z);
-
-        /* WORK MODE */
-        switch (workMode) {
-            case 'g': showEulerAngle();
-                      break;
-            case 'n': break;
-            default : printf("'g' is show euler angle, 'n' is not.\n");
-                      break;
-        }
+        showEulerAngle();
     }
     gy953Close(fd);
     return (void *)0;

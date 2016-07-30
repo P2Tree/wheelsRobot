@@ -22,7 +22,7 @@
 
 unsigned char readKS103Register(unsigned int fd, const char *argAddr, const char *argReg);
 
-void distanceMultipleKS103(unsigned int fd, const char *argAddr, const char *sensorNum, int *result);
+void distanceMultipleKS103(unsigned int fd, const unsigned char argAddr, const unsigned int sensorNum, int *result);
 
 unsigned int distanceAKS103(unsigned int fd, const char *argAddr);
 

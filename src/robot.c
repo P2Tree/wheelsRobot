@@ -34,18 +34,17 @@ int main(int argc, char *argv[]) {
     pthread_t id3, id4;
 
     char *arg1 = argv[1];
-    char *arg2 = argv[2];
 
-    if (1 == argc || (3 == argc && !strcmp(arg1, "-gy953"))) {
-        pthread_ret = pthread_create(&gy953ThreadId, NULL, (void*)gy953Thread, arg2);
+    if (1 == argc || (2 == argc && !strcmp(arg1, "-gy953"))) {
+        pthread_ret = pthread_create(&gy953ThreadId, NULL, (void*)gy953Thread, NULL);
         if ( pthread_ret ) {
             printf("Create pthread error! gy953 thread.\n");
             return 1;
         }
     }
 
-    if (1 == argc || (3 == argc && !strcmp(arg1, "-ks103"))) {
-        pthread_ret = pthread_create(&ks103ThreadId, NULL, (void*)ks103Thread, arg2);
+    if (1 == argc || (2 == argc && !strcmp(arg1, "-ks103"))) {
+        pthread_ret = pthread_create(&ks103ThreadId, NULL, (void*)ks103Thread, NULL);
         if ( pthread_ret ) {
             printf("Create pthread error! ks103 thread.\n");
             return 1;

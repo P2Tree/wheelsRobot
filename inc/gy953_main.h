@@ -5,6 +5,6 @@ float getYawAngle(void);
 
 void showEulerAngle(void);
 
-void *gy953Thread(char workMode);
+void *gy953Thread(void);
 
 #endif /* end of include guard: GY953_MAIN_H_D0MAET5W */
