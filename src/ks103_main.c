@@ -59,3 +59,19 @@ void showKS103Distance() {
     printf("\n");
 }
 
+int getKS103Distance1() {
+    return distanceOfSensor1;
+}
+
+int getKS103Distance2() {
+    return distanceOfSensor2;
+}
+
+int getKS103Distance3() {
+    return distanceOfSensor3;
+}
+
+int getKS103Distance4() {
+    return distanceOfSensor4;
+}
+
