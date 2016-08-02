@@ -11,7 +11,7 @@ float origin_yaw = 0.0;
 void *myThread3(void) {
     int i;
     for (i=0; i<100; i++) {
-        printf("This is the ks103 pthread.\n");
+        printf("This is the cy30 pthread.\n");
         sleep(1);
     }
     return (void *)0;
@@ -35,18 +35,18 @@ int main(int argc, char *argv[]) {
 
     char *arg1 = argv[1];
 
-    if (1 == argc || (2 == argc && !strcmp(arg1, "-gy953"))) {
-        pthread_ret = pthread_create(&gy953ThreadId, NULL, (void*)gy953Thread, NULL);
-        if ( pthread_ret ) {
-            printf("Create pthread error! gy953 thread.\n");
-            return 1;
-        }
-    }
-
     if (1 == argc || (2 == argc && !strcmp(arg1, "-ks103"))) {
         pthread_ret = pthread_create(&ks103ThreadId, NULL, (void*)ks103Thread, NULL);
         if ( pthread_ret ) {
             printf("Create pthread error! ks103 thread.\n");
+            return 1;
+        }
+    }
+
+    if (1 == argc || (2 == argc && !strcmp(arg1, "-gy953"))) {
+        pthread_ret = pthread_create(&gy953ThreadId, NULL, (void*)gy953Thread, NULL);
+        if ( pthread_ret ) {
+            printf("Create pthread error! gy953 thread.\n");
             return 1;
         }
     }

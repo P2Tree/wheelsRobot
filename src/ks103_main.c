@@ -39,8 +39,9 @@ void *ks103Thread(){
         distanceOfSensor3 = distanceResult[2];
         distanceOfSensor4 = distanceResult[3];
 
+        /* sleep(1); */
+        usleep(10000);   // 10ms
         showKS103Distance();
-        sleep(1);
     }
 
     distanceAKS103(fd, (const char *)KS103ADDRESS_1);
