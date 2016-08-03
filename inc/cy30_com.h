@@ -10,7 +10,7 @@
 /**
  * ** ARGUMENTS
  */
-#define READLEN                     20      // The max read string length
+#define READLEN                     11      // The max read string length
 
 // because of 'Segmentation Fault', set 'dev' to global variable.
 /* static unsigned int dev = 1;        // com port. 1 is ttymxc1, 2 is ttymxc2 */
@@ -111,9 +111,9 @@ typedef struct container{
 
 typedef struct wrbuffer{
     unsigned char *command; // send to sensor
-    int cmdlen;             // command length
-    unsigned char *readData;// receive from sensor
-    int readlen;
+    unsigned int cmdlen;             // command length
+    unsigned char readData[READLEN];// receive from sensor
+    unsigned int readlen;
 }wrBuffer;
 
 int cy30Init(int flag);
@@ -130,7 +130,7 @@ int cy30Init(int flag);
 int cy30ConstructCommand(Mode mode, unsigned char address, Action action, unsigned char **cmd );
 
 /**
- * @func    cy30DistanceMultiple    contain catch distance from cy30 sensor with multiple devices, two devices
+ * @func    cy30DistanceMultiple    contain catch distance from cy30 sensor with multiple devices, two devices, NOT GOOD ENOUGH TO USE
  * @param   fd1                     fd1 is file descriptor device 1
  * @param   fd2                     fd2 is file descriptor device 2
  * @param   dev1Buffer              send and read buffer of device 1
@@ -140,6 +140,14 @@ int cy30ConstructCommand(Mode mode, unsigned char address, Action action, unsign
 int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buffer);
     
 /**
+ * @func    cy20GetDistance         catch distance from sensor
+ * @param   fd                      file descriptor of device
+ * @param   devBuffer               send and read buffer of device
+ * @retval                          0 is down -1 is error read
+ * */
+int cy30GetDistance(int fd, wrBuffer *devBuffer);
+
+/**
  * cy30ResultProcess: used to analysis result recieved
  * @param   container       a struct form argument to save distance and address
  * @param   origin          received data
@@ -147,6 +155,6 @@ int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buf
  * @param   action          which action return to origin
  * @origin                  0 is down
  */
-int cy30ResultProcess(DistanceContainer *container, unsigned char * origin, unsigned len, Action action);
+int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action action);
 
 #endif  // CY30-COM

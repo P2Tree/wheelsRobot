@@ -8,19 +8,26 @@
  * *******************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
 #include <pthread.h>
 #include "cy30_com.h"
 #include "cy30_main.h"
 
-void * cy30Thread() {
+static float sensor1Distance = 0.0;
+static float sensor2Distance = 0.0;
+
+void *cy30Thread() {
     int fd1, fd2;
+#ifdef DEBUG
+    int i;      // use to traverse read data
+#endif
     wrBuffer dev1Buffer;
     wrBuffer dev2Buffer;
+
     DistanceContainer container;
 
-    printf("before init cy30\n");
     fd1 = cy30Init(0);
     fd2 = cy30Init(1);
     if (fd1 > 0 && fd2 > 0)
@@ -41,24 +48,56 @@ void * cy30Thread() {
     }
 
     while(1) {
+        // sensor 1
         // catch data
-        cy30DistanceMultiple(fd1, fd2, dev1Buffer, dev2Buffer);
+        if (0 == cy30GetDistance(fd1, &dev1Buffer)) {
+            // process data
+#ifdef DEBUG
+            for (i=0; i<dev1Buffer.readlen; i++)
+                printf("%x ", dev1Buffer.readData[i]);
+            printf("\n");
+#endif
+            if (0 == cy30ResultProcess(&container, dev1Buffer, MeasureOnce)) {
+                /* printf("address is 0x%02X , distance is %.3f\n", container.address, container.distance); */
+                sensor1Distance = container.distance;
+                printf("CY30 sensor 1 address : 0x%02X, distance: %.3f\n", container.address, sensor1Distance);
 
-        // process data
-        if (0 == cy30ResultProcess(&container, dev1Buffer.readData, dev1Buffer.readlen, MeasureOnce)) {
-            printf("address is 0x%02X , distance is %.3f\n", 
-                    container.address, container.distance);
+            }
+            else
+                printf("CY30 sensor 1 distance error data\n");
+            *dev1Buffer.readData = '\0';
         }
+        else
+            printf("CY30 sensor 1 distance no data\n");
 
-        if (0 == cy30ResultProcess(&container, dev2Buffer.readData, dev2Buffer.readlen, MeasureOnce)) {
-            printf("address is 0x%02X, distance is %.3f\n",
-                    container.address, container.distance);
+
+        // sensor 2
+        // catch data
+        if (0 == cy30GetDistance(fd2, &dev2Buffer)) {
+            //process data
+#ifdef DEBUG
+            for (i=0; i<dev2Buffer.readlen; i++)
+                printf("%x ", dev2Buffer.readData[i]);
+            printf("\n");
+#endif
+            if (0 == cy30ResultProcess(&container, dev2Buffer, MeasureOnce)) {
+                /* printf("address is 0x%02X, distance is %.3f\n", container.address, container.distance); */
+                sensor2Distance = container.distance;
+                printf("CY30 sensor 2 address : 0x%02X, distance: %.3f\n", container.address, sensor2Distance);
+
+            }
+            else
+                printf("CY30 sensor 1 distance error data\n");
+            *dev2Buffer.readData = '\0';
         }
+        else
+            printf("CY30 sensor 2 distance no data\n");
 
-        *dev1Buffer.readData = '\0';
-        *dev2Buffer.readData = '\0';
+
     }
+    free(dev1Buffer.command);
+    free(dev2Buffer.command);
     close(fd1);
     close(fd2);
-    return 0;
+    return (void*)0;
 }

@@ -39,8 +39,8 @@ void *gy953Thread() {
         angle_y = angleResult[1];
         angle_z = angleResult[2];
 
-        /* sleep(1); */
-        usleep(10000);   // 10ms
+        sleep(1);
+        /* usleep(10000);   // 10ms */
         showEulerAngle();
     }
     gy953Close(fd);

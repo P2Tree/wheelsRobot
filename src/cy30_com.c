@@ -16,6 +16,7 @@
 #include "cy30_com.h"
 #include <stdlib.h>
 
+
 /**
  * ** LOCAL FUNCTIONS DECLARATION
  */
@@ -76,7 +77,7 @@ static int uartInit(int flag) {
         perror("open_port error");
         return -1;
     }
-    if(setOpt(fd, 115200, 8, 'N', 1) < 0) {
+    if(setOpt(fd, 9600, 8, 'N', 1) < 0) {
         perror("set_opt error");
         return -1;
     }
@@ -136,26 +137,20 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
         perror("Set_opt wrong speed OR other speed");
         return -1;
     }
-
     if ( 1 == nStop)
         newtio.c_cflag &= ~CSTOPB;        // stop 1 bit
     else if ( 2 == nStop)
         newtio.c_cflag |= CSTOPB;        // stop 2 bits
-
     newtio.c_cc[VTIME] = 0;                // waitting time
     newtio.c_cc[VMIN] = 0;                // min receive data
 
     tcflush(fd, TCIOFLUSH);
-
     if ((tcsetattr(fd, TCSANOW, &newtio)) != 0) {
         tcsetattr(fd, TCSANOW, &oldtio);
         perror("Set_opt com set error");
         return -1;
     }
-
     tcflush(fd, TCIOFLUSH);
-
-    printf("set down!\n");
     return 0;
 }
 
@@ -195,7 +190,9 @@ static unsigned char calculateCS(unsigned char * precommand, unsigned int len) {
 }
 
 static int checkCS(unsigned char * origin, unsigned int len) {
+#ifdef DEBUG
     printf("in the checkcs, len = %d\n", len);
+#endif
     char value  = 0x00;
     unsigned int i;
     if (len <= 0) {
@@ -207,7 +204,9 @@ static int checkCS(unsigned char * origin, unsigned int len) {
         value = value + origin[i];
     }
     value = ~value + 1;
+#ifdef DEBUG
     printf("end of checkcs, value = %x\n", value);
+#endif
     if (value == origin[len-1])
         return 0;   // right cs
     else
@@ -274,45 +273,65 @@ int cy30ConstructCommand(Mode mode, unsigned char address, Action action, unsign
 }
 
 int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buffer) {
-    write(fd1, dev1Buffer.command, dev1Buffer.cmdlen);
+    int ret = 0;
     tcflush(fd1, TCOFLUSH);
+    write(fd1, dev1Buffer.command, dev1Buffer.cmdlen);
     sleep(1);
     dev1Buffer.readlen = read(fd1, dev1Buffer.readData, READLEN);
     tcflush(fd1, TCIFLUSH);
 
-    if (!(dev1Buffer.readlen > 0)) {
-        printf("read no data\n");
-        return -1;
-    }
-
-    write(fd2, dev2Buffer.command, dev2Buffer.cmdlen);
     tcflush(fd2, TCOFLUSH);
+    write(fd2, dev2Buffer.command, dev2Buffer.cmdlen);
     sleep(1);
     dev2Buffer.readlen = read(fd2, dev2Buffer.readData, READLEN);
     tcflush(fd2, TCIFLUSH);
 
-    if (!(dev2Buffer.readlen > 0)) {
-        printf("read no data\n");
-        return -1;
+    if (!(dev1Buffer.readlen > 0)) {
+        printf("sensor1 read no data\n");
+        ret = ret | 0x01;
+    }
+    else if (!(dev2Buffer.readlen > 0)) {
+        printf("sensor2 read no data\n");
+        ret = ret | 0x02;
     }
 
+    return ret;
+}
+
+int cy30GetDistance(int fd, wrBuffer *devBuffer) {
+    tcflush(fd, TCOFLUSH);
+    write(fd, (*devBuffer).command, (*devBuffer).cmdlen);
+    sleep(1);
+    (*devBuffer).readlen = read(fd, (*devBuffer).readData, READLEN);
+    tcflush(fd, TCIFLUSH);
+
+    if (0 == (*devBuffer).readlen) {
+        /* printf("sensor fd = %d read no data\n", fd); */
+        return -1;
+    }
     return 0;
 }
 
-int cy30ResultProcess(DistanceContainer *container, unsigned char *origin, unsigned int len, Action action) {
-    printf("begin process\n");
+int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action action) {
     unsigned char originDist[7];
+    unsigned char *origin = devBuffer.readData;
+    unsigned int len = devBuffer.readlen;
     int i;
+    // E R R - -
     if (0x45 == origin[3] && 0x52 == origin[4] && 0x52 == origin[5]) {
-        printf("wrong data: receive ERR message.\n");
+        /* printf("wrong distance: receive ERR message.\n"); */
         return -1;
     }
-    printf("check data down\n");
+#ifdef DEBUG
+    printf("check data error down\n");
+#endif
     if (checkCS(origin, len)) {
         printf("Error: receive error result, checkCS stop.\n");
-        return -1;
+        return -2;
     }
+#ifdef DEBUG
     printf("check cs down\n");
+#endif
     switch(action) {
         case ReadArguments : break;
         case ReadMachineNum : break;
@@ -341,7 +360,9 @@ int cy30ResultProcess(DistanceContainer *container, unsigned char *origin, unsig
             printf("analysis command: Error Action\n");
             return -1;
     }
+#ifdef DEBUG
     printf("end of process\n");
+#endif
     return 0;
 }
 

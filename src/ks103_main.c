@@ -39,8 +39,8 @@ void *ks103Thread(){
         distanceOfSensor3 = distanceResult[2];
         distanceOfSensor4 = distanceResult[3];
 
-        /* sleep(1); */
-        usleep(10000);   // 10ms
+        sleep(1);
+        /* usleep(10000);   // 10ms */
         showKS103Distance();
     }
 
