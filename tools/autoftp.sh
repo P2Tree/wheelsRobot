@@ -7,10 +7,10 @@ target='robot'
 cd ./bin/
 
 /usr/bin/ftp -n << !
-open 192.168.1.32
-user root root
+open 192.168.2.1
+user root fonda199287
 passive on
-cd /root/
+cd /home/
 put ${target}
 bye
 !

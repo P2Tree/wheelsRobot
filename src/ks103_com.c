@@ -218,7 +218,7 @@ void writeKS103Register(unsigned int fd, const char *argAddr, const char *argReg
 
 unsigned int KS103Init() {
     int fd;
-    fd = open("/dev/i2c-2", O_RDWR);
+    fd = open("/dev/i2c/0", O_RDWR);
     if (fd < 0) {
         printf("ks103 i2c open error\n");
         exit(1);

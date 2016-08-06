@@ -13,6 +13,7 @@ CC = arm-fsl-linux-gnueabi-gcc
 #CC = clang
 CFLAGS = -pthread -I${DIR_INC}
 CFLAGS += -Wall
+#CFLAGS += -g
 
 ${BIN_TAG} : ${OBJ}
 	$(CC) $(CFLAGS) $(OBJ) -o $@

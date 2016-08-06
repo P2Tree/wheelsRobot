@@ -140,12 +140,12 @@ int cy30ConstructCommand(Mode mode, unsigned char address, Action action, unsign
 int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buffer);
     
 /**
- * @func    cy20GetDistance         catch distance from sensor
+ * @func    cy30GetData             catch distance from sensor
  * @param   fd                      file descriptor of device
  * @param   devBuffer               send and read buffer of device
  * @retval                          0 is down -1 is error read
  * */
-int cy30GetDistance(int fd, wrBuffer *devBuffer);
+int cy30GetData(int fd, wrBuffer *devBuffer);
 
 /**
  * cy30ResultProcess: used to analysis result recieved
@@ -156,5 +156,7 @@ int cy30GetDistance(int fd, wrBuffer *devBuffer);
  * @origin                  0 is down
  */
 int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action action);
+
+int cy30GetDistance(int fd, wrBuffer *devBuffer, DistanceContainer *container, Action action);
 
 #endif  // CY30-COM

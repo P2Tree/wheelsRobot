@@ -298,14 +298,23 @@ int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buf
     return ret;
 }
 
-int cy30GetDistance(int fd, wrBuffer *devBuffer) {
+int cy30GetData(int fd, wrBuffer *devBuffer) {
+    int i;
+    for (i=0; i<4; i++)
+        printf("%x ", (*devBuffer).command[i]);
+    printf("\n");
+    printf("commandlen = %d\n", (*devBuffer).cmdlen);
+
     tcflush(fd, TCOFLUSH);
     write(fd, (*devBuffer).command, (*devBuffer).cmdlen);
     sleep(1);
     (*devBuffer).readlen = read(fd, (*devBuffer).readData, READLEN);
+    for (i=0; i<(*devBuffer).readlen; i++)
+        printf("%x ", (*devBuffer).readData[i]);
+    printf("\n");
     tcflush(fd, TCIFLUSH);
 
-    if (0 == (*devBuffer).readlen) {
+    if (READLEN != (*devBuffer).readlen) {
         /* printf("sensor fd = %d read no data\n", fd); */
         return -1;
     }
@@ -364,6 +373,37 @@ int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action a
     printf("end of process\n");
 #endif
     return 0;
+}
+
+int cy30GetDistance(int fd, wrBuffer *devBuffer, DistanceContainer *container, Action action) {
+    int ret = 0;
+    /* int i; */
+    /* for (i=0; i<4; i++) */
+        /* printf("%x ", (*devBuffer).command[i]); */
+    /* printf("\n"); */
+    /* printf("commandlen = %d\n", (*devBuffer).cmdlen); */
+    ret = cy30GetData(fd, devBuffer);
+    printf("ret = %d\n", ret);
+    // catch data
+    if ( ret ) {
+        // process data
+        /* for (i=0; i<(*devBuffer).readlen; i++) */
+            /* printf("%x ", (*devBuffer).readData[i]); */
+        /* printf("\n"); */
+        if (0 == cy30ResultProcess(container, *devBuffer, MeasureOnce)) {
+            printf("address is 0x%02X , distance is %.3f\n", (*container).address, (*container).distance);
+        }
+        else {
+            printf("CY30 sensor distance error data\n");
+            return -2;
+        }
+        memset((*devBuffer).readData, 0, 11*sizeof(unsigned char));
+        return 0;
+    }
+    else {
+        printf("CY30 sensor distance no data\n");
+        return -1;
+    }
 }
 
 
