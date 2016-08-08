@@ -9,12 +9,14 @@
  * In this project, we only use angle_z to check robot direction
  * */
 
+// Please attention for data locker
+
 /* x is alpha angle, roll angle, value from -PI to PI */
-static float angle_x = 0.0;
+volatile static float angle_x = 0.0;
 /* y is gamma angle, pitch angle, value from -1/2PI to 1/2PI */
-static float angle_y = 0.0;
+volatile static float angle_y = 0.0;
 /* z is beta angle, yaw angle, value from -PI to PI */
-static float angle_z = 0.0;
+volatile static float angle_z = 0.0;
 
 static unsigned char command[3];
 
