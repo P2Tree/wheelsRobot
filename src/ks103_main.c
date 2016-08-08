@@ -23,13 +23,14 @@ volatile static int distanceOfSensor4 = 0;
 void *ks103Thread(){
     int fd;
     int distanceResult[4];
+    const char *port = "/dev/i2c-1";
 
-    fd = KS103Init();
+    fd = KS103Init(port);
     if (-1 == fd) {
         printf("KS103 init fault.\n");
         pthread_exit((void*)1);
     }
-    printf("KS103 init down.\n");
+    printf("KS103 init down. port: %s, fd = %d\n", port, fd);
 
     while(1) {
         distanceMultipleKS103(fd, KS103ADDRESS_1, 4, distanceResult);

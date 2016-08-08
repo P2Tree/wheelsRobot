@@ -20,27 +20,21 @@ volatile static float sensorDistance = 0.0;
 
 void *cy30Thread() {
     int fd;
-#ifdef DEBUG
-    int i;      // use to traverse read data
-#endif
+    const char *port = "/dev/ttymxc3";
+
     wrBuffer devBuffer;
 
     DistanceContainer container;
 
-    fd = cy30Init(0);
+    fd = cy30Init(port, &devBuffer);
     if (fd > 0)
-        printf("cy30 init down. fd = %d\n", fd);
-    else {
-        printf("cy30 init error.\n");
+        printf("cy30 init down. port: %s, fd = %d\n", port, fd);
+    else if (-1 == fd) {
+        printf("cy30 init open port error.\n");
         pthread_exit((void*)1);
     }
-
-    devBuffer.cmdlen = cy30ConstructCommand(Measure, 0x80, MeasureOnce, &devBuffer.command);
-
-    if (devBuffer.cmdlen > 0)
-        printf("cy30 command construct down. cmdlen = %d\n", devBuffer.cmdlen);
-    else {
-        printf("cy30 command construct error.\n");
+    else if (-2 == fd) {
+        printf("cy30 init create command error.\n");
         pthread_exit((void*)1);
     }
 

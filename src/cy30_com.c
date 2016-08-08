@@ -59,21 +59,21 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop);
  * @param   flag        device flag
  * @return 0 is down
  */
-static int openPort(int flag);
+static int openPort(const char *port);
 
 /**
  * @func:   uartInit    initialization of uart, contain open_port and set_opt funcs
  * @retval:             int is file descriptor
  * */
-static int uartInit(int flag);
+static int uartInit(const char *port);
 
 /**
  * * LOCAL FUNCTION DEFINATION
  * */
 
-static int uartInit(int flag) {
+static int uartInit(const char *port) {
     int fd;
-    if((fd = openPort(flag)) < 0) {
+    if((fd = openPort(port)) < 0) {
         perror("open_port error");
         return -1;
     }
@@ -154,23 +154,11 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
     return 0;
 }
 
-static int openPort(int flag) {
+static int openPort(const char *port) {
     int fd;
-    if (0 == flag) {
-        if (-1 == (fd = open("/dev/ttymxc3", O_RDWR | O_NOCTTY | O_NONBLOCK)) ) {
-            perror ("Can't Open Serial Port");
-            return -1;
-        }
-    }
-    else if (1 == flag) {
-        if (-1 == (fd = open("/dev/ttymxc2", O_RDWR | O_NOCTTY | O_NONBLOCK)) ) {
-            perror ("Can't Open Serial Port");
-            return -1;
-        }
-    }
-    else {
-        printf("wrong device flag! flag = %d\n", flag);
-        return -2;
+    if (-1 == (fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK)) ) {
+        perror ("Can't Open Serial Port");
+        return -1;
     }
     return fd;
 }
@@ -213,12 +201,21 @@ static float calculateDistance(unsigned char * originDist) {
         (float)(originDist[5] - '0')*0.01 + (float)(originDist[6] - '0')*0.001;
 }
 
-int cy30Init(int flag) {
+int cy30Init(const char *port, wrBuffer *devBuffer) {
     int fd;
-    fd = uartInit(flag);
+    fd = uartInit(port);
     if (-1 == fd) {
         printf("cy30 uart init error.\n");
         return -1;
+    }
+
+    (*devBuffer).cmdlen = cy30ConstructCommand(Measure, 0x80, MeasureOnce, &(*devBuffer).command);
+
+    if ((*devBuffer).cmdlen > 0)
+        printf("cy30 command construct down. cmdlen = %d\n", (*devBuffer).cmdlen);
+    else {
+        printf("cy30 command construct error.\n");
+        return -2;
     }
     return fd;
 }
@@ -298,7 +295,7 @@ int cy30GetData(int fd, wrBuffer *devBuffer) {
     printf("commandlen = %d\n", (*devBuffer).cmdlen);
     printf("command is: ");
     for (i=0; i<4; i++)
-        printf("%x ", (*devBuffer).command[i]);
+        printf("%02x ", (*devBuffer).command[i]);
     printf("\n");
 #endif
 
@@ -308,6 +305,7 @@ int cy30GetData(int fd, wrBuffer *devBuffer) {
     (*devBuffer).readlen = read(fd, (*devBuffer).readData, READLEN);
 #ifdef  DEBUG_CY30
     printf("readlen = %d\n", (*devBuffer).readlen);
+    printf("READLEN = %d\n", (unsigned int)READLEN);
     printf("receive data is: ");
     for (i=0; i<(*devBuffer).readlen; i++)
         printf("%x ", (*devBuffer).readData[i]);
@@ -315,7 +313,7 @@ int cy30GetData(int fd, wrBuffer *devBuffer) {
 #endif
     tcflush(fd, TCIFLUSH);
 
-    if (READLEN != (*devBuffer).readlen+1) {
+    if (READLEN != ((*devBuffer).readlen+1)) {
         /* printf("sensor fd = %d read no data\n", fd); */
         return -1;
     }

@@ -30,6 +30,11 @@ void changeKS103Address(unsigned int fd, const char *argAddr, const char *argNew
 
 void writeKS103Register(unsigned int fd, const char *argAddr, const char *argReg, const char *argValue);
 
-unsigned int KS103Init();
+/**
+ * @func:   KS103Init       initialization of ks103 code module
+ * @param:  port            uart port name
+ * @retval: int             0 is down.
+ * */
+int KS103Init(const char *port);
 
 #endif /* end of include guard: KS103_I2C_H_V0TRSQPI */

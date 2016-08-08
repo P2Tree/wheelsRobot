@@ -45,9 +45,11 @@
 
 /**
  * @func:   gy953Init   initialization of gy953 module
+ * @param:  port        uart port name
+ * @param:  command     command which will be create to send to sensor
  * @retval:             0 is down
  * */
-int gy953Init(void);
+int gy953Init(const char *port, unsigned char *command);
 
 /**
  * @func: gy953Close     use to close uart

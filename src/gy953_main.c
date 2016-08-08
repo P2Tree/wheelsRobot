@@ -9,7 +9,7 @@
  * In this project, we only use angle_z to check robot direction
  * */
 
-// Please attention for data locker
+// Please attention for mutex
 
 /* x is alpha angle, roll angle, value from -PI to PI */
 volatile static float angle_x = 0.0;
@@ -18,20 +18,20 @@ volatile static float angle_y = 0.0;
 /* z is beta angle, yaw angle, value from -PI to PI */
 volatile static float angle_z = 0.0;
 
-static unsigned char command[3];
 
 void *gy953Thread() {
     int fd;
     float angleResult[3];
 
-    fd = gy953Init();
+    const char *port = "/dev/ttymxc1";
+    unsigned char command[3];
+
+    fd = gy953Init(port, command);
     if (-1 == fd) {
         printf("GY953 init fault.\n");
         pthread_exit((void*)1);
     }
-    printf("GY953 init down.\n");
-
-    gy953ConstructCommand(EULERANGLE, command);
+    printf("GY953 init down. port is %s, fd = %d\n", port, fd);
 
     while(1) {
 

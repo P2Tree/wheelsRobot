@@ -38,9 +38,10 @@ static int checkCS(unsigned char *data, int len);
 
 /**
  * @func: uartInit      use to initialization uart, call functions from gy953_uart file
+ * @param:  port        uart port name
  * @retval:             0 is down
  * */
-static int uartInit(void);
+static int uartInit(const char *port);
 
 /**
  * @func: setOpt    use to setting uart options
@@ -55,9 +56,10 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop);
 
 /**
  * @func: openPort  use to open uart
+ * @param: port     uart port name
  * @retval:         0 is down
  **/
-static int openPort(void);
+static int openPort(const char *port);
 
 /**
  * @func: gy953ReceiveData   use to receive date from device
@@ -135,9 +137,9 @@ static int checkCS(unsigned char *data, int len) {
     }
 }
 
-static int uartInit(void) {
+static int uartInit(const char *port) {
     int fd;
-    if ((fd = openPort()) < 0) {
+    if ((fd = openPort(port)) < 0) {
         perror("open_port error");
         return -1;
     }
@@ -236,9 +238,9 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
     return 0;
 }
 
-static int openPort() {
+static int openPort(const char *port) {
     int fd;
-    fd = open("/dev/ttymxc1", O_RDWR | O_NOCTTY | O_NONBLOCK);
+    fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (-1 == fd) {
         perror ("Can't Open Serial Port");
         return -1;
@@ -302,13 +304,15 @@ static int analysisAccelerometer(unsigned char *originData, int len, int *data1,
  * *    PUBLIC FUNCTION DEFINATION
  * */
 
-int gy953Init() {
+int gy953Init(const char *port, unsigned char *command) {
     int fd;
-    fd = uartInit();
+    fd = uartInit(port);
     if (-1 == fd) {
         printf("gy953 uart init error.\n");
         return -1;
     }
+    gy953ConstructCommand(EULERANGLE, command);
+
     return fd;
 }
 

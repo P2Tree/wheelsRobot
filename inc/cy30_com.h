@@ -116,7 +116,12 @@ typedef struct wrbuffer{
     unsigned int readlen;
 }wrBuffer;
 
-int cy30Init(int flag);
+/**
+ * @func    cy30Init        initialization cy30 code module
+ * @param   port            uart port name
+ * @retval  int             0 is down
+ * */
+int cy30Init(const char *port, wrBuffer *devBuffer);
 
 /**
  * @func    cy30ConstructCommand: to construct command, full command
