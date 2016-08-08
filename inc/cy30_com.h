@@ -10,10 +10,10 @@
 /**
  * ** ARGUMENTS
  */
-#define READLEN                     11      // The max read string length
+#define READLEN                     12      // The max read string length, and you know, it will catch 11 bits data, the last one bit is \n
 
-// because of 'Segmentation Fault', set 'dev' to global variable.
-/* static unsigned int dev = 1;        // com port. 1 is ttymxc1, 2 is ttymxc2 */
+// debug flag
+#define DEBUG_CY30x
 
 /**
  * ** PARAMENTS

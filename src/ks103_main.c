@@ -12,13 +12,13 @@
  * */
 
 // sensor 1 distance, range to ?, unit is 'mm'
-static int distanceOfSensor1 = 0;
+volatile static int distanceOfSensor1 = 0;
 // sensor 2 distance, range to ?, unit is 'mm'
-static int distanceOfSensor2 = 0;
+volatile static int distanceOfSensor2 = 0;
 // sensor 3 distance, range to ?, unit is 'mm'
-static int distanceOfSensor3 = 0;
+volatile static int distanceOfSensor3 = 0;
 // sensor 4 distance, range to ?, unit is 'mm'
-static int distanceOfSensor4 = 0;
+volatile static int distanceOfSensor4 = 0;
 
 void *ks103Thread(){
     int fd;
@@ -45,8 +45,6 @@ void *ks103Thread(){
     }
 
     distanceAKS103(fd, (const char *)KS103ADDRESS_1);
-
-    /* fprintf(stderr, USAGE_MESSAGE, argv[0], argv[0], argv[0], argv[0]); */
 
     close(fd);
     return 0;

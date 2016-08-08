@@ -238,7 +238,7 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
 
 static int openPort() {
     int fd;
-    fd = open("/dev/ttySAC1", O_RDWR | O_NOCTTY | O_NONBLOCK);
+    fd = open("/dev/ttymxc1", O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (-1 == fd) {
         perror ("Can't Open Serial Port");
         return -1;

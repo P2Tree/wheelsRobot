@@ -157,7 +157,7 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
 static int openPort(int flag) {
     int fd;
     if (0 == flag) {
-        if (-1 == (fd = open("/dev/ttymxc1", O_RDWR | O_NOCTTY | O_NONBLOCK)) ) {
+        if (-1 == (fd = open("/dev/ttymxc3", O_RDWR | O_NOCTTY | O_NONBLOCK)) ) {
             perror ("Can't Open Serial Port");
             return -1;
         }
@@ -190,9 +190,6 @@ static unsigned char calculateCS(unsigned char * precommand, unsigned int len) {
 }
 
 static int checkCS(unsigned char * origin, unsigned int len) {
-#ifdef DEBUG
-    printf("in the checkcs, len = %d\n", len);
-#endif
     char value  = 0x00;
     unsigned int i;
     if (len <= 0) {
@@ -204,9 +201,6 @@ static int checkCS(unsigned char * origin, unsigned int len) {
         value = value + origin[i];
     }
     value = ~value + 1;
-#ifdef DEBUG
-    printf("end of checkcs, value = %x\n", value);
-#endif
     if (value == origin[len-1])
         return 0;   // right cs
     else
@@ -299,22 +293,29 @@ int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buf
 }
 
 int cy30GetData(int fd, wrBuffer *devBuffer) {
+#ifdef  DEBUG_CY30
     int i;
+    printf("commandlen = %d\n", (*devBuffer).cmdlen);
+    printf("command is: ");
     for (i=0; i<4; i++)
         printf("%x ", (*devBuffer).command[i]);
     printf("\n");
-    printf("commandlen = %d\n", (*devBuffer).cmdlen);
+#endif
 
     tcflush(fd, TCOFLUSH);
     write(fd, (*devBuffer).command, (*devBuffer).cmdlen);
-    sleep(1);
+    sleep(2);
     (*devBuffer).readlen = read(fd, (*devBuffer).readData, READLEN);
+#ifdef  DEBUG_CY30
+    printf("readlen = %d\n", (*devBuffer).readlen);
+    printf("receive data is: ");
     for (i=0; i<(*devBuffer).readlen; i++)
         printf("%x ", (*devBuffer).readData[i]);
     printf("\n");
+#endif
     tcflush(fd, TCIFLUSH);
 
-    if (READLEN != (*devBuffer).readlen) {
+    if (READLEN != (*devBuffer).readlen+1) {
         /* printf("sensor fd = %d read no data\n", fd); */
         return -1;
     }
@@ -331,14 +332,14 @@ int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action a
         /* printf("wrong distance: receive ERR message.\n"); */
         return -1;
     }
-#ifdef DEBUG
-    printf("check data error down\n");
+#ifdef DEBUG_CY30
+    printf("check data down\n");
 #endif
     if (checkCS(origin, len)) {
         printf("Error: receive error result, checkCS stop.\n");
         return -2;
     }
-#ifdef DEBUG
+#ifdef DEBUG_CY30
     printf("check cs down\n");
 #endif
     switch(action) {
@@ -369,29 +370,22 @@ int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action a
             printf("analysis command: Error Action\n");
             return -1;
     }
-#ifdef DEBUG
-    printf("end of process\n");
-#endif
     return 0;
 }
 
 int cy30GetDistance(int fd, wrBuffer *devBuffer, DistanceContainer *container, Action action) {
     int ret = 0;
-    /* int i; */
-    /* for (i=0; i<4; i++) */
-        /* printf("%x ", (*devBuffer).command[i]); */
-    /* printf("\n"); */
-    /* printf("commandlen = %d\n", (*devBuffer).cmdlen); */
     ret = cy30GetData(fd, devBuffer);
-    printf("ret = %d\n", ret);
+#ifdef  DEBUG_CY30
+    printf("cy30GetData ret = %d\n", ret);
+#endif
     // catch data
-    if ( ret ) {
+    if ( !ret ) {
         // process data
-        /* for (i=0; i<(*devBuffer).readlen; i++) */
-            /* printf("%x ", (*devBuffer).readData[i]); */
-        /* printf("\n"); */
         if (0 == cy30ResultProcess(container, *devBuffer, MeasureOnce)) {
+#ifdef  DEBUG_CY30
             printf("address is 0x%02X , distance is %.3f\n", (*container).address, (*container).distance);
+#endif
         }
         else {
             printf("CY30 sensor distance error data\n");
