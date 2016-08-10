@@ -357,7 +357,7 @@ int gy953ConstructCommand(int hexCommand, unsigned char *command) {
     return 0;
 }
 
-void get3AxisEulerAngle(int fd, unsigned char *command, float *result) {
+void getGY953Result(int fd, unsigned char *command, float *result) {
     unsigned char recData[MAXLEN];
     int receiveLen = 0;
     int sendLen = 0;
@@ -401,4 +401,3 @@ void get3AxisEulerAngle(int fd, unsigned char *command, float *result) {
     result[1] = y;
     result[2] = z;
 }
-

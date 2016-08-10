@@ -5,6 +5,10 @@ float getYawAngle(void);
 
 void showEulerAngle(void);
 
+void showAcc(void);
+
+int offsetCheckAcc(float accx, float accy, float accz, float *aveAccx, float *aveAccy, float *aveAccz);
+
 void *gy953Thread(void);
 
 #endif /* end of include guard: GY953_MAIN_H_D0MAET5W */

@@ -1,7 +1,8 @@
 #ifndef GY953_COM_H_0EYLRUGX
 #define GY953_COM_H_0EYLRUGX
 
-#define DEBUG_GY953
+/* debug flag */
+#define DEBUG_GY953x
 
 /**
  * *    PARAMETER
@@ -67,11 +68,11 @@ int gy953Close(int fd);
 int gy953ConstructCommand(int hexCommand, unsigned char *command);
 
 /**
- * @func:   get3AxisEulerAngle      can get euler angles of 3 axis
+ * @func:   getGY953Result          can get euler angles of 3 axis
  * @param:  fd                      file descriptor
  * @param:  command                 command want to send to gy953
  * @param:  result                  get result
  * */
-void get3AxisEulerAngle(int fd, unsigned char *command, float *result);
+void getGY953Result(int fd, unsigned char *command, float *result);
 
 #endif /* end of include guard: GY953_COM_H_0EYLRUGXGY953_COM_H_0EYLRUGX */
