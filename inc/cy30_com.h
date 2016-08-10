@@ -7,13 +7,14 @@
 #ifndef CY30_COM_H
 #define CY30_COM_H
 
+// debug flag
+#define DEBUG_CY30x
+
 /**
  * ** ARGUMENTS
  */
 #define READLEN                     12      // The max read string length, and you know, it will catch 11 bits data, the last one bit is \n
 
-// debug flag
-#define DEBUG_CY30x
 
 /**
  * ** PARAMENTS

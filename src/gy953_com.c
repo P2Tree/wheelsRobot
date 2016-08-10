@@ -16,7 +16,6 @@
 /**
  * *    LOCAL FUNCTION DECLARATION
  * */
-
 /**
  * @func:   analysisData    use to check out all of data from received data(string)
  * @param:  originData      received data(string)
@@ -26,7 +25,7 @@
  * @param:  data3           data 3 in received string, will return to what call it
  * @retval:                 0 is down, -1 is data wrong
  * */
-static int analysisData(unsigned char *originData, int len, int *data1, int *data2, int *data3);
+static int analysisData(unsigned char *originData, int len, signed short *data1, signed short *data2, signed short *data3);
 
 /**
  * @func: checkCS       check cs bit in received data
@@ -99,21 +98,27 @@ static int analysisEulerangle(unsigned char *originData, int len, float *data1, 
  * @param:  data3                   return data group 3
  * @retval:                         0 is down and -1 is wrong
  **/
-static int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3) __attribute__ ((unused));
+static int analysisAccelerometer(unsigned char *originData, int len, float *data1, float *data2, float *data3) __attribute__ ((unused));
 
 /**
  * *    LOCAL FUNCTION DEFINATION
  * */
 
-static int analysisData(unsigned char *originData, int len, int *data1, int *data2, int *data3) {
+static int analysisData(unsigned char *originData, int len, signed short *data1, signed short *data2, signed short *data3) {
     int i=0;
     if (checkCS(originData, len)) {
         printf("data wrong\n");
         return -1;
     }
-    *data1 = (unsigned int)(originData[i+4] << 8 | originData[i+5]);
-    *data2 = (unsigned int)(originData[i+6] << 8 | originData[i+7]);
-    *data3 = (unsigned int)(originData[i+8] << 8 | originData[i+9]);
+#ifdef  DEBUG_GY953
+    /* for (i=0; i<11; i++) */
+        /* printf("a[%d] = %02x ", i, originData[i]); */
+    /* printf("\n"); */
+#endif
+    i = 0;
+    *data1 = (int)(originData[i+4] << 8 | originData[i+5]);
+    *data2 = (int)(originData[i+6] << 8 | originData[i+7]);
+    *data3 = (int)(originData[i+8] << 8 | originData[i+9]);
     return 0;
 }
 
@@ -269,34 +274,48 @@ static int gy953SendCommand(int fd, unsigned char *command, unsigned int len) {
 }
 
 static int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
-    int da1, da2, da3;
+    signed short da1, da2, da3;
     if (-1 == analysisData(originData, len, &da1, &da2, &da3)) {
         printf("analysis eulerangle wrong\n");
         return -1;
     }
-    if (da1 > 32768 || da1 == 32768)
-        da1 = -(65535-da1);
-    if (da2 > 32768 || da2 == 32768)
-        da2 = -(65535-da2);
-    if (da3 > 32768 || da2 == 32768)
-        da3 = -(65535-da3);
+#ifdef  DEBUG_GY953
+    printf("da1 = 0x%04hx ", da1);
+    printf("da2 = 0x%04hx ", da2);
+    printf("da3 = 0x%04hx ", da3);
+    printf("\n");
+#endif
+    /* if (da1 > 32768 || da1 == 32768) */
+        /* da1 = -(da1 & 0x7FFF); */
+    /* if (da2 > 32768 || da2 == 32768) */
+        /* da2 = -(da2 & 0x7FFF); */
+    /* if (da3 > 32768 || da2 == 32768) */
+        /* da3 = -(da3 & 0x7FFF); */
     *data1 = (float)da1 / 100;
     *data2 = (float)da2 / 100;
     *data3 = (float)da3 / 100;
     return 0;
 }
 
-static int analysisAccelerometer(unsigned char *originData, int len, int *data1, int *data2, int *data3) {
-    if ( -1 == analysisData(originData, len, data1, data2, data3)) {
+static int analysisAccelerometer(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
+    signed short da1, da2, da3;
+    if ( -1 == analysisData(originData, len, &da1, &da2, &da3)) {
         printf("analysis accelerometer wrong\n");
         return -1;
     }
-    if (*data1 > 32768 || *data1 == 32768) {
-        *data1 = -(65535-*data1);
-    }
-    if (*data2 > 32768 || *data2 == 32768) {
-        *data2 = -(65535-*data2);
-    }
+    /* if (*da1> 32768 || *da1== 32768) { */
+        /* *da1 = -(65535-*da1); */
+    /* } */
+    /* if (*da2 > 32768 || *da2 == 32768) { */
+        /* *da2 = -(65535-*da2); */
+    /* } */
+    /* if (*da3 > 32768 || *da3 == 32768) { */
+        /* *da3 = -(65535-*da3); */
+    /* } */
+    *data1 = (float)da1;
+    *data2 = (float)da2;
+    *data3 = (float)da3;
+
     return 0;
 }
 
@@ -304,14 +323,14 @@ static int analysisAccelerometer(unsigned char *originData, int len, int *data1,
  * *    PUBLIC FUNCTION DEFINATION
  * */
 
-int gy953Init(const char *port, unsigned char *command) {
+int gy953Init(const char *port) {
     int fd;
     fd = uartInit(port);
     if (-1 == fd) {
         printf("gy953 uart init error.\n");
         return -1;
     }
-    gy953ConstructCommand(EULERANGLE, command);
+    /* gy953ConstructCommand(EULERANGLE, command); */
 
     return fd;
 }
@@ -323,10 +342,18 @@ int gy953Close(int fd) {
 
 int gy953ConstructCommand(int hexCommand, unsigned char *command) {
     int i;
+#ifdef  DEBUG_GY953
+    printf("construct command is: ");
+#endif
     for (i=0; i<3; i++) {
         command[i] = (unsigned char)((hexCommand >> ((2-i) * 8)) & 0x0000ff);
-        /* printf("%02x\n", command[i]); */
+#ifdef  DEBUG_GY953
+        printf("%02x ", command[i]);
+#endif
     }
+#ifdef  DEBUG_GY953
+    printf("\n");
+#endif
     return 0;
 }
 
@@ -341,36 +368,32 @@ void get3AxisEulerAngle(int fd, unsigned char *command, float *result) {
     sendLen = gy953SendCommand(fd, command, WRITELEN);
     if (-1 == sendLen) {
         printf("send error\n");
-#ifdef  DEBUG
+#ifdef  DEBUG_GY953
         int i;
-        /* printf("sendLen = %d", sendLen); */
-        /* for (i=0; i<sendLen; i++) */
-            /* printf("%02x ", command[i]); */
-        /* printf("\n---\n"); */
+        printf("sendLen = %d", sendLen);
+        for (i=0; i<sendLen; i++)
+            printf("%02x ", command[i]);
+        printf("\n---\n");
 #endif
         return;
     }
-#ifdef  DEBUG
-    /* printf("send.\n"); */
+#ifdef  DEBUG_GY953
+    printf("send.\n");
 #endif
     receiveLen = gy953ReceiveData(fd, recData, MAXLEN);
     if ( -1 == receiveLen) {
         printf("receive error\n");
-#ifdef  DEBUG
+#ifdef  DEBUG_GY953
         int i;
-        /* printf("receiveLen: %d\n", receiveLen); */
-        /* for (i=0; i<receiveLen; i++) */
-            /* printf("%02x ", recData[i]); */
-        /* printf("\n---\n"); */
+        printf("receiveLen: %d\n", receiveLen);
+        for (i=0; i<receiveLen; i++)
+            printf("%02x ", recData[i]);
+        printf("\n---\n");
 #endif
         return;
     }
-#ifdef  DEBUG
-    /* printf("receive.\n"); */
-    /* printf("receiveLen: %d\n", receiveLen); */
-    /* for (i=0; i<receiveLen; i++) */
-        /* printf("%02x ", recData[i]); */
-    /* printf("\n---\n"); */
+#ifdef  DEBUG_GY953
+    printf("receive.\n");
 #endif
     analysisEulerangle(recData, receiveLen, &x, &y, &z);
 

@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
             printf("Create pthread error! ks103 thread.\n");
             return 1;
         }
+        pthread_detach(ks103ThreadId);
     }
 
     if (1 == argc || (2 == argc && !strcmp(arg1, "-gy953"))) {
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
             printf("Create pthread error! gy953 thread.\n");
             return 1;
         }
+        pthread_detach(gy953ThreadId);
     }
 
     if (1 == argc || (2 == argc && !strcmp(arg1, "-cy30"))) {
@@ -50,6 +52,7 @@ int main(int argc, char *argv[]) {
             printf("Create pthread error! cy30 thread\n");
             return 1;
         }
+        pthread_detach(cy30ThreadId);
     }
 
     if (1 == argc || (2 == argc && !strcmp(arg1, "-infrared"))) {
@@ -58,6 +61,7 @@ int main(int argc, char *argv[]) {
             printf("Create pthread error!\n");
             return 1;
         }
+        pthread_detach(id4);
     }
 
     if ( argc > 2) {

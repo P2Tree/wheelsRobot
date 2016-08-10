@@ -1,6 +1,8 @@
 #ifndef GY953_COM_H_0EYLRUGX
 #define GY953_COM_H_0EYLRUGX
 
+#define DEBUG_GY953
+
 /**
  * *    PARAMETER
  */
@@ -46,10 +48,9 @@
 /**
  * @func:   gy953Init   initialization of gy953 module
  * @param:  port        uart port name
- * @param:  command     command which will be create to send to sensor
  * @retval:             0 is down
  * */
-int gy953Init(const char *port, unsigned char *command);
+int gy953Init(const char *port);
 
 /**
  * @func: gy953Close     use to close uart
