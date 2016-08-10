@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include "gy953_main.h"
 #include "gy953_com.h"
-
+#include <math.h>
 /**
  * three axis euler angles 
  * In this project, we only use angle_z to check robot direction
@@ -21,9 +21,16 @@ volatile static float angle_z = 0.0;
 volatile static float acc_x = 0.0;
 volatile static float acc_y = 0.0;
 volatile static float acc_z = 0.0;
-static float accOffset_x = -174.05;
-static float accOffset_y = -2.83;
-static float accOffset_z = 82.68;
+static float accOffset_x = 0;
+static float accOffset_y = 0;
+static float accOffset_z = 0;
+
+volatile static float gyr_x = 0.0;
+volatile static float gyr_y = 0.0;
+volatile static float gyr_z = 0.0;
+static float gyrOffset_x = 0.0;
+static float gyrOffset_y = 0.0;
+static float gyrOffset_z = 0.0;
 
 // command arguments
 static unsigned char eulerCommand[3];
@@ -33,7 +40,6 @@ static unsigned char magCommand[3];
 
 void *gy953Thread() {
     int fd;
-
     float result[3];
 
     const char *port = "/dev/ttymxc1";
@@ -45,29 +51,33 @@ void *gy953Thread() {
         pthread_exit((void*)1);
     }
     gy953ConstructCommand(EULERANGLE, eulerCommand);
-    gy953ConstructCommand(EULERANGLE, accCommand);
-    gy953ConstructCommand(EULERANGLE, gyrCommand);
-    gy953ConstructCommand(EULERANGLE, magCommand);
+    gy953ConstructCommand(ACCELEROMETER, accCommand);
+    gy953ConstructCommand(GYROSCOPE, gyrCommand);
+    gy953ConstructCommand(MAGNETOMETER, magCommand);
 
     printf("GY953 init down. port is %s, fd = %d\n", port, fd);
 
     while(1) {
-
-        /* getGY953Result(fd, eulerCommand, result); */
+        /* getGY953Result(fd, 1, eulerCommand, result); */
         /* angle_x = angleResult[0]; */
         /* angle_y = angleResult[1]; */
         /* angle_z = angleResult[2]; */
-        getGY953Result(fd, accCommand, result);
-
+        getGY953Result(fd, 2, accCommand, result);
         acc_x = result[0] - accOffset_x;
         acc_y = result[1] - accOffset_y;
-        acc_z = result[2] - (accOffset_z - 90.00);
+        acc_z = result[2] - accOffset_z;
 
-        offsetCheckAcc(result[0], result[1], result[2], &accOffset_x, &accOffset_y, &accOffset_z);
-        sleep(1);
-        /* usleep(10000);   // 10ms */
+        
+        /* offsetCheckAcc(result[0], result[1], result[2], &accOffset_x, &accOffset_y, &accOffset_z); */
+        /* getGY953Result(fd, gyrCommand, result); */
+        /* gyr_x = result[0] - gyrOffset_x; */
+        /* gyr_y = result[1] - gyrOffset_y; */
+        /* gyr_z = result[2] - gyrOffset_z; */
         /* showEulerAngle(); */
         showAcc();
+        /* showGyr(); */
+        sleep(1);
+        /* usleep(10000);   // 10ms */
     }
     gy953Close(fd);
     return (void *)0;
@@ -84,9 +94,15 @@ void showEulerAngle(void) {
 }
 
 void showAcc(void) {
-    printf("accelerate x: %.2f ", acc_x);
-    printf("accelerate y: %.2f ", acc_y);
-    printf("accelerate z: %.2f\n", acc_z);
+    printf("acceleration x: %.0f ", acc_x);
+    printf("acceleration y: %.0f ", acc_y);
+    printf("acceleration z: %.0f\n", acc_z);
+}
+
+void showGyr(void) {
+    printf("gyroscope x = %.2f ", gyr_x);
+    printf("gyroscope y = %.2f ", gyr_y);
+    printf("gyroscope z = %.2f\n", gyr_z);
 }
 
 int offsetCheckAcc(float accx, float accy, float accz, float *aveAccx, float *aveAccy, float *aveAccz) {
@@ -100,15 +116,17 @@ int offsetCheckAcc(float accx, float accy, float accz, float *aveAccx, float *av
     addy = addy + accy;
     addz = addz + accz;
     if (addn < 200)
-        printf("gy953 accelerate offset check was running, keep sensor stable and waiting...\n");
+        printf("%d%% gy953 accelerate offset check was running, keep sensor stable and waiting...\n", addn/2);
     else {
         *aveAccx = addx / addn;
         *aveAccy = addy / addn;
         *aveAccz = addz / addn;
-        printf("aveAccx = %.2f ", *aveAccx);
-        printf("aveAccy = %.2f ", *aveAccy);
-        printf("aveAccz = %.2f\n", *aveAccz);
+        printf("offsetAccx = %.2f ", *aveAccx);
+        printf("offsetAccy = %.2f ", *aveAccy);
+        printf("offsetAccz = %.2f\n", *aveAccz);
         return 0;
     }
     return -1;
 }
+
+

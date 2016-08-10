@@ -357,7 +357,7 @@ int gy953ConstructCommand(int hexCommand, unsigned char *command) {
     return 0;
 }
 
-void getGY953Result(int fd, unsigned char *command, float *result) {
+void getGY953Result(int fd, int mode, unsigned char *command, float *result) {
     unsigned char recData[MAXLEN];
     int receiveLen = 0;
     int sendLen = 0;
@@ -395,7 +395,10 @@ void getGY953Result(int fd, unsigned char *command, float *result) {
 #ifdef  DEBUG_GY953
     printf("receive.\n");
 #endif
-    analysisEulerangle(recData, receiveLen, &x, &y, &z);
+    if (1 == mode)
+        analysisEulerangle(recData, receiveLen, &x, &y, &z);
+    if (2 == mode)
+        analysisAccelerometer(recData, receiveLen, &x, &y, &z);
 
     result[0] = x;
     result[1] = y;

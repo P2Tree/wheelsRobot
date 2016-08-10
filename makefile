@@ -11,7 +11,7 @@ BIN_TAG = ${DIR_BIN}/${TAG}
 
 CC = arm-fsl-linux-gnueabi-gcc
 #CC = clang
-CFLAGS = -pthread -I${DIR_INC}
+CFLAGS = -pthread -lm -I${DIR_INC}
 CFLAGS += -Wall
 #CFLAGS += -g
 

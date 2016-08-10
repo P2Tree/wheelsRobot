@@ -7,6 +7,8 @@ void showEulerAngle(void);
 
 void showAcc(void);
 
+void showGyr(void);
+
 int offsetCheckAcc(float accx, float accy, float accz, float *aveAccx, float *aveAccy, float *aveAccz);
 
 void *gy953Thread(void);
