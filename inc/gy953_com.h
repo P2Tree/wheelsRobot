@@ -70,9 +70,10 @@ int gy953ConstructCommand(int hexCommand, unsigned char *command);
 /**
  * @func:   getGY953Result          can get euler angles of 3 axis
  * @param:  fd                      file descriptor
+ * @param:  mode                    mode flag to show which data type
  * @param:  command                 command want to send to gy953
  * @param:  result                  get result
  * */
-void getGY953Result(int fd, unsigned char *command, float *result);
+void getGY953Result(int fd, int mode, unsigned char *command, signed short *result);
 
 #endif /* end of include guard: GY953_COM_H_0EYLRUGXGY953_COM_H_0EYLRUGX */

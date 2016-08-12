@@ -87,10 +87,11 @@ static int gy953SendCommand(int fd, unsigned char *command, unsigned int len);
  * @param:  data3                   return angle z axis
  * @retval:                         0 is down, -1 is error
  * */
-static int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3);
+static int analysisEulerangle(unsigned char *originData, int len, signed short *data1, signed short *data2, signed short *data3);
 
 /**
- * @func:   analysisAccelerometer   analysis data of accelerometer
+ * @func:   analysisAxis            analysis data of origin axis data from sensor, including
+ *                                  accelerometer, gyroscope and megnetometer
  * @param:  originData              received data
  * @param:  len                     length of received data
  * @param:  data1                   return data group 1
@@ -98,7 +99,7 @@ static int analysisEulerangle(unsigned char *originData, int len, float *data1, 
  * @param:  data3                   return data group 3
  * @retval:                         0 is down and -1 is wrong
  **/
-static int analysisAccelerometer(unsigned char *originData, int len, float *data1, float *data2, float *data3) __attribute__ ((unused));
+static int analysisAxis(unsigned char *originData, int len, signed short *data1, signed short *data2, signed short *data3) __attribute__ ((unused));
 
 /**
  * *    LOCAL FUNCTION DEFINATION
@@ -273,7 +274,7 @@ static int gy953SendCommand(int fd, unsigned char *command, unsigned int len) {
     return flag;
 }
 
-static int analysisEulerangle(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
+static int analysisEulerangle(unsigned char *originData, int len, signed short *data1, signed short *data2, signed short *data3) {
     signed short da1, da2, da3;
     if (-1 == analysisData(originData, len, &da1, &da2, &da3)) {
         printf("analysis eulerangle wrong\n");
@@ -297,7 +298,7 @@ static int analysisEulerangle(unsigned char *originData, int len, float *data1, 
     return 0;
 }
 
-static int analysisAccelerometer(unsigned char *originData, int len, float *data1, float *data2, float *data3) {
+static int analysisAxis(unsigned char *originData, int len, signed short *data1, signed short *data2, signed short *data3) {
     signed short da1, da2, da3;
     if ( -1 == analysisData(originData, len, &da1, &da2, &da3)) {
         printf("analysis accelerometer wrong\n");
@@ -357,13 +358,13 @@ int gy953ConstructCommand(int hexCommand, unsigned char *command) {
     return 0;
 }
 
-void getGY953Result(int fd, int mode, unsigned char *command, float *result) {
+void getGY953Result(int fd, int mode, unsigned char *command, signed short *result) {
     unsigned char recData[MAXLEN];
     int receiveLen = 0;
     int sendLen = 0;
-    float x = 0.0;
-    float y = 0.0;
-    float z = 0.0;
+    signed short x = 0.0;
+    signed short y = 0.0;
+    signed short z = 0.0;
 
     sendLen = gy953SendCommand(fd, command, WRITELEN);
     if (-1 == sendLen) {
@@ -380,6 +381,8 @@ void getGY953Result(int fd, int mode, unsigned char *command, float *result) {
 #ifdef  DEBUG_GY953
     printf("send.\n");
 #endif
+    /* sleep(1); */
+    usleep(2000); //2ms
     receiveLen = gy953ReceiveData(fd, recData, MAXLEN);
     if ( -1 == receiveLen) {
         printf("receive error\n");
@@ -398,8 +401,7 @@ void getGY953Result(int fd, int mode, unsigned char *command, float *result) {
     if (1 == mode)
         analysisEulerangle(recData, receiveLen, &x, &y, &z);
     if (2 == mode)
-        analysisAccelerometer(recData, receiveLen, &x, &y, &z);
-
+        analysisAxis(recData, receiveLen, &x, &y, &z);
     result[0] = x;
     result[1] = y;
     result[2] = z;
