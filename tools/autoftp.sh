@@ -1,36 +1,40 @@
 #!/bin/sh
-
+trans_date=`date +%y%m%d%H%M` 
 target='robot'
-remote_addr='/root/'
+local_addr='./bin'
+remote_addr='/root'
 remote_ipaddr='192.168.1.32'
 
 ftp_user='root'
 ftp_password='root'
-#make
 
-cd ./bin/
-
-echo remote ip address is: ${remote_ipaddr}
-echo remote directory is: ${remote_addr}
-echo target is: ${target}
-
-echo open ftp and login: ${ftp_user} ${ftp_password}.
-/usr/bin/ftp -n << !
+echo "
 open ${remote_ipaddr}
+prompt
 user ${ftp_user} ${ftp_password}
-passive on
+lcd ${local_addr}
 cd ${remote_addr}
-put ${target}
-get ${target} retrieval.$$
+passive on
+binary
+mput ${target}
+close
 bye
-!
+"|ftp -v -n |sed 's/^/>/g' >>run.log  
 
-if [ -f retrieval.$$ ]
+if [ -s run.log ]
 then
-    echo ftp of transfer ${target} to ${remote_ipaddr} down.
-    rm -f retrieval.$$
+  echo "SYSTEM: ftp login success." 
+  SEARCH=`grep 'bytes sent in' run.log`
+  if [ $? -eq 0 ]                     
+    then
+    echo "FTP: \033[1;33;5msuccess\033[0m to transfer ${local_addr}/${target} to ${remote_ipaddr}${remote_addr}"
+    rm run.log
+  else
+    echo "FTP: \033[1;31;5mfail\033[0m to transfer ${local_addr}/${target} to ${remote_ipaddr}${remote_addr}" 
+    cat run.log
+    rm run.log
+  fi
 else
-    echo "ftp of transfer ${target} \033[1;31;5merror\033[0m"
+  echo "SYSTEM: ftp login \033[1;31;5mFAIL\033[0m."
+  exit 1
 fi
-
-

@@ -16,7 +16,6 @@
 #include "cy30_com.h"
 #include <stdlib.h>
 
-
 /**
  * ** LOCAL FUNCTIONS DECLARATION
  */
