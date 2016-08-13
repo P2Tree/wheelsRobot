@@ -4,6 +4,8 @@
 #include "gy953_main.h"
 #include "gy953_com.h"
 #include <math.h>
+#include "mahony.h"
+
 /**
  * three axis euler angles 
  * In this project, we only use angle_z to check robot direction
@@ -18,19 +20,38 @@ volatile static float angle_y = 0.0;
 /* z is beta angle, yaw angle, value from -PI to PI */
 volatile static float angle_z = 0.0;
 
+/**
+ * three axis accelerometer data.
+ * accelerometer and gyroscope in the follow will used to join in
+ * hamony algorithm.
+ * */
+/* x accel is value from -2g to 2g, normal is 0g in stationary state*/
 volatile static float acc_x = 0.0;
+/* y accel is value from -2g to 2g, normal is 0g in stationary state*/
 volatile static float acc_y = 0.0;
+/* z accel is value from -2g to 2g, normal is -1g in stationary state*/
 volatile static float acc_z = 0.0;
-const static float accOffset_x = -0.006537;
-const static float accOffset_y = -0.105023;
-const static float accOffset_z = -0.006095;
 
+/* accelerometer data static shift offset value, should measure them
+ * in a statical and stability state.*/
+ static float accOffset_x = -0.006537;
+ static float accOffset_y = -0.105023;
+ static float accOffset_z = -0.006095;
+
+/**
+ * three axis gyroscope data.
+ * */
+/* x gyro is value from -2000dps to 2000dps, normal is 0dps in stationary state */
 volatile static float gyr_x = 0.0;
+/* y gyro is value from -2000dps to 2000dps, normal is 0dps in stationary state */
 volatile static float gyr_y = 0.0;
+/* z gyro is value from -2000dps to 2000dps, normal is 0dps in stationary state */
 volatile static float gyr_z = 0.0;
-const static float gyrOffset_x = 0.0;
-const static float gyrOffset_y = 0.0;
-const static float gyrOffset_z = 0.0;
+
+/* same as accelerometer offset data */
+ static float gyrOffset_x = 0.0;
+ static float gyrOffset_y = 0.0;
+ static float gyrOffset_z = 0.0;
 
 // command arguments
 static unsigned char eulerCommand[3];
@@ -74,7 +95,6 @@ void *gy953Thread() {
         result[2] = 0;
         /* showAcc(); */
 
-
         getGY953Result(fd, 2, gyrCommand, result);
         gyr_x = (result[0] / (float)GY953GYRTRANS) - gyrOffset_x;     // 16.4 is a transfer const arg in gy953 gyroscope sensor parts
         gyr_y = (result[1] / (float)GY953GYRTRANS) - gyrOffset_y;
@@ -95,6 +115,18 @@ void *gy953Thread() {
 
 float getYawAngle(void) {
     return angle_z;
+}
+
+void getAcc(float *retAccX, float *retAccY, float *retAccZ) {
+    *retAccX = acc_x;
+    *retAccY = acc_y;
+    *retAccZ = acc_z;
+}
+
+void getGyr(float *retGyrX, float *retGyrY, float *retGyrZ) {
+    *retGyrX = acc_x;
+    *retGyrY = acc_y;
+    *retGyrZ = acc_z;
 }
 
 void showEulerAngle(void) {
@@ -138,4 +170,6 @@ void getAccAve(float acc_x, float acc_y, float acc_z) {
     printf("average accelerometer z: %.6f\n", addz/n);
     // accelerometer z axis must add 1.0 to result offset z, 1g gravitational acceleration
     // should be consider.
+
+    // TODO: auto amend accelerometer
 }

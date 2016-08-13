@@ -7,6 +7,10 @@
 
 float getYawAngle(void);
 
+void getAcc(float *retAccX, float *retAccY, float *retAccZ);
+
+void getGyr(float *retGyrX, float *retGyrY, float *retGyrZ);
+
 void showEulerAngle(void);
 
 void showAcc(void);
