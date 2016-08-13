@@ -15,7 +15,7 @@ void showEulerAngle(void);
 
 void showAcc(void);
 
-void showAccOrigin(float originx, float originy, float originz);
+void showOrigin(float originx, float originy, float originz);
 
 void showGyr(void);
 

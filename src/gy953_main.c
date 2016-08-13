@@ -90,6 +90,8 @@ void *gy953Thread() {
         acc_y = (result[1] / (float)GY953ACCTRANS) - accOffset_y;
         acc_z = (result[2] / (float)GY953ACCTRANS) - accOffset_z;
         /* getAccAve(result[0] / (float)GY953ACCTRANS, result[1] / (float)GY953ACCTRANS, result[2] / (float)GY953ACCTRANS); */
+        printf("acc: ");
+        showOrigin(result[0], result[1], result[2]);
         result[0] = 0;
         result[1] = 0;
         result[2] = 0;
@@ -99,13 +101,12 @@ void *gy953Thread() {
         gyr_x = (result[0] / (float)GY953GYRTRANS) - gyrOffset_x;     // 16.4 is a transfer const arg in gy953 gyroscope sensor parts
         gyr_y = (result[1] / (float)GY953GYRTRANS) - gyrOffset_y;
         gyr_z = (result[2] / (float)GY953GYRTRANS) - gyrOffset_z;
-        /* printf("gyr origin x = %04x ", result[0]); */
-        printf("gyr origin y = %04x ", result[1]);
-        printf("gyr origin z = %04x\n", result[2]);
+        printf("gyr: ");
+        showOrigin(result[0], result[1], result[2]);
         result[0] = 0;
         result[1] = 0;
         result[2] = 0;
-        showGyr();
+        /* showGyr(); */
         sleep(1);
         /* usleep(10000);   // 10ms */
     }
@@ -141,10 +142,10 @@ void showAcc(void) {
     printf("acceleration z: %.6f\n", acc_z);
 }
 
-void showAccOrigin(float originx, float originy, float originz) {
-    printf("accelerometer origin x: %.6f ", originx);
-    printf("accelerometer origin y: %.6f ", originy);
-    printf("accelerometer origin z: %.6f\n", originz);
+void showOrigin(float originx, float originy, float originz) {
+    printf("origin x: %.6f ", originx);
+    printf("origin y: %.6f ", originy);
+    printf("origin z: %.6f\n", originz);
 }
 
 void showGyr(void) {
