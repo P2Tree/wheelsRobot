@@ -13,6 +13,8 @@ void getGyr(float *retGyrX, float *retGyrY, float *retGyrZ);
 
 void getMag(float *retMagX, float *retMagY, float *retMagZ);
 
+void getEulerFromSensor(float *retEulerX, float *retEulerY, float *retEulerZ);
+
 void showEulerAngle(void);
 
 void showAcc(void);

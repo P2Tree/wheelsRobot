@@ -69,7 +69,6 @@ static unsigned char magCommand[3];
 void *gy953Thread() {
     int fd;
     signed short result[3];
-    int n = 0;
     const char *port = "/dev/ttymxc1";
     /* unsigned char eulerCommand[3]; */
 
@@ -78,52 +77,56 @@ void *gy953Thread() {
         printf("GY953 init fault.\n");
         pthread_exit((void*)1);
     }
-    gy953ConstructCommand(EULERANGLE, eulerCommand);
-    gy953ConstructCommand(ACCELEROMETER, accCommand);
-    gy953ConstructCommand(GYROSCOPE, gyrCommand);
-    gy953ConstructCommand(MAGNETOMETER, magCommand);
+    gy953ConstructCommand(EULERANGLE, eulerCommand);        // constructing euler angle getting command
+    gy953ConstructCommand(ACCELEROMETER, accCommand);       // constructing accelerometer getting command
+    gy953ConstructCommand(GYROSCOPE, gyrCommand);           // constructing gyroscope getting command
+    gy953ConstructCommand(MAGNETOMETER, magCommand);        // constructing magnetometer getting command
 
     printf("GY953 init down. port is %s, fd = %d\n", port, fd);
 
     while(1) {
-        /* getGY953Result(fd, 1, eulerCommand, result); */
-        /* angle_x = angleResult[0]; */
-        /* angle_y = angleResult[1]; */
-        /* angle_z = angleResult[2]; */
-        /* showEulerAngle(); */
-        n++;
-        /* printf("n=%d\n", n); */
-        getGY953Result(fd, 2, accCommand, result);
-        acc_x = (result[0] / (float)GY953ACCTRANS) - accOffset_x;   // GY953ACCTRANS = 16383
-        acc_y = (result[1] / (float)GY953ACCTRANS) - accOffset_y;
-        acc_z = (result[2] / (float)GY953ACCTRANS) - accOffset_z;
-        /* getAccAve(result[0] / (float)GY953ACCTRANS, result[1] / (float)GY953ACCTRANS, result[2] / (float)GY953ACCTRANS); */
-        /* printf("acc: "); */
-        /* showOrigin(result[0], result[1], result[2]); */
+        getGY953Result(fd, 1, eulerCommand, result);
+        angle_x = result[0];
+        angle_y = result[1];
+        angle_z = result[2];
         result[0] = 0;
         result[1] = 0;
         result[2] = 0;
+        showEulerAngle();
+
+        // getting accelerometer data in 3 axis from sensor
+        /* getGY953Result(fd, 2, accCommand, result); */
+        /* acc_x = (result[0] / (float)GY953ACCTRANS) - accOffset_x;   // GY953ACCTRANS = 16383 */
+        /* acc_y = (result[1] / (float)GY953ACCTRANS) - accOffset_y; */
+        /* acc_z = (result[2] / (float)GY953ACCTRANS) - accOffset_z; */
+        /* [> getAccAve(result[0] / (float)GY953ACCTRANS, result[1] / (float)GY953ACCTRANS, result[2] / (float)GY953ACCTRANS); <] */
+        /* [> printf("acc: "); <] */
+        /* [> showOrigin(result[0], result[1], result[2]); <] */
+        /* result[0] = 0; */
+        /* result[1] = 0; */
+        /* result[2] = 0; */
         /* showAcc(); */
 
-        getGY953Result(fd, 2, gyrCommand, result);
-        gyr_x = (result[0] / (float)GY953GYRTRANS) - gyrOffset_x;     // 16.4 is a transfer const arg in gy953 gyroscope sensor parts
-        gyr_y = (result[1] / (float)GY953GYRTRANS) - gyrOffset_y;
-        gyr_z = (result[2] / (float)GY953GYRTRANS) - gyrOffset_z;
-        /* printf("gyr: "); */
-        /* showOrigin(result[0], result[1], result[2]); */
-        result[0] = 0;
-        result[1] = 0;
-        result[2] = 0;
+        // getting gyroscope data in 3 axis from sensor
+        /* getGY953Result(fd, 2, gyrCommand, result); */
+        /* gyr_x = (result[0] / (float)GY953GYRTRANS) - gyrOffset_x;     // 16.4 is a transfer const arg in gy953 gyroscope sensor parts */
+        /* gyr_y = (result[1] / (float)GY953GYRTRANS) - gyrOffset_y; */
+        /* gyr_z = (result[2] / (float)GY953GYRTRANS) - gyrOffset_z; */
+        /* [> printf("gyr: "); <] */
+        /* [> showOrigin(result[0], result[1], result[2]); <] */
+        /* result[0] = 0; */
+        /* result[1] = 0; */
+        /* result[2] = 0; */
         /* showGyr(); */
 
-        getGY953Result(fd, 2, magCommand, result);
-        mag_x = (result[0] / (float)GY953MAGTRANS) - magOffset_x;
-        mag_y = (result[1] / (float)GY953MAGTRANS) - magOffset_y;
-        mag_z = (result[2] / (float)GY953MAGTRANS) - magOffset_z;
-
-        result[0] = 0;
-        result[1] = 0;
-        result[2] = 0;
+        // getting magnetometer data in 3 axis from sensor
+        /* getGY953Result(fd, 2, magCommand, result); */
+        /* mag_x = (result[0] / (float)GY953MAGTRANS) - magOffset_x; */
+        /* mag_y = (result[1] / (float)GY953MAGTRANS) - magOffset_y; */
+        /* mag_z = (result[2] / (float)GY953MAGTRANS) - magOffset_z; */
+        /* result[0] = 0; */
+        /* result[1] = 0; */
+        /* result[2] = 0; */
         /* showMag(); */
         /* sleep(1); */
         usleep(5000);   // 5ms
@@ -132,6 +135,9 @@ void *gy953Thread() {
     return (void *)0;
 }
 
+/**
+ * * Update data functions to outer calling
+ * */
 float getYawAngle(void) {
     return angle_z;
 }
@@ -154,9 +160,18 @@ void getMag(float *retMagX, float *retMagY, float *retMagZ) {
     *retMagZ = mag_z;
 }
 
+void getEulerFromSensor(float *retEulerX, float *retEulerY, float *retEulerZ) {
+    *retEulerX = angle_x;
+    *retEulerY = angle_y;
+    *retEulerZ = angle_z;
+}
+
+/**
+ * * Show function
+ * */
 void showEulerAngle(void) {
-    printf("angle x: %.6f ", angle_x);
-    printf("angle y: %.6f ", angle_y);
+    printf("angle x: %.6f\t", angle_x);
+    printf("angle y: %.6f\t", angle_y);
     printf("angle z: %.6f\n", angle_z);
 }
 
@@ -184,6 +199,11 @@ void showMag(void) {
     printf("magnetometer z - %.6f\n", mag_z);
 }
 
+/**
+ * * calculate function
+ * */
+
+// use to get acc average data in n count control, average data of accelerometer can adjust Offset_acc
 void getAccAve(float acc_x, float acc_y, float acc_z) {
     static float addx = 0.0;
     static float addy = 0.0;

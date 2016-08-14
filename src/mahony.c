@@ -18,8 +18,10 @@
 // Definitions
 
 #define sampleFreq  200.0f          // sample frequency in Hz
-#define twoKpDef    (2.0f * 0.4f)   // 2 * proportional gain
-#define twoKiDef    (2.0f * 0.000000f)   // 2 * integral gain
+#define twoKpDef    (2.0f * 100.0f)   // 2 * proportional gain
+#define twoKiDef    (2.0f * 165.0f)   // 2 * integral gain
+
+// in 9 axis ahrs: kp=2.0*100 ki=2.0*165
 
 //---------------------------------------------------------------------------------------------------
 // Variable definitions
