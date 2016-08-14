@@ -53,6 +53,13 @@ volatile static float gyr_z = 0.0;
  static float gyrOffset_y = 0.0;
  static float gyrOffset_z = 0.0;
 
+volatile static float mag_x = 0.0;
+volatile static float mag_y = 0.0;
+volatile static float mag_z = 0.0;
+static float magOffset_x = 0.0;
+static float magOffset_y = 0.0;
+static float magOffset_z = 0.0;
+
 // command arguments
 static unsigned char eulerCommand[3];
 static unsigned char accCommand[3];
@@ -62,7 +69,7 @@ static unsigned char magCommand[3];
 void *gy953Thread() {
     int fd;
     signed short result[3];
-
+    int n = 0;
     const char *port = "/dev/ttymxc1";
     /* unsigned char eulerCommand[3]; */
 
@@ -84,14 +91,15 @@ void *gy953Thread() {
         /* angle_y = angleResult[1]; */
         /* angle_z = angleResult[2]; */
         /* showEulerAngle(); */
-
+        n++;
+        /* printf("n=%d\n", n); */
         getGY953Result(fd, 2, accCommand, result);
         acc_x = (result[0] / (float)GY953ACCTRANS) - accOffset_x;   // GY953ACCTRANS = 16383
         acc_y = (result[1] / (float)GY953ACCTRANS) - accOffset_y;
         acc_z = (result[2] / (float)GY953ACCTRANS) - accOffset_z;
         /* getAccAve(result[0] / (float)GY953ACCTRANS, result[1] / (float)GY953ACCTRANS, result[2] / (float)GY953ACCTRANS); */
-        printf("acc: ");
-        showOrigin(result[0], result[1], result[2]);
+        /* printf("acc: "); */
+        /* showOrigin(result[0], result[1], result[2]); */
         result[0] = 0;
         result[1] = 0;
         result[2] = 0;
@@ -101,12 +109,24 @@ void *gy953Thread() {
         gyr_x = (result[0] / (float)GY953GYRTRANS) - gyrOffset_x;     // 16.4 is a transfer const arg in gy953 gyroscope sensor parts
         gyr_y = (result[1] / (float)GY953GYRTRANS) - gyrOffset_y;
         gyr_z = (result[2] / (float)GY953GYRTRANS) - gyrOffset_z;
-        printf("gyr: ");
-        showOrigin(result[0], result[1], result[2]);
+        /* printf("gyr: "); */
+        /* showOrigin(result[0], result[1], result[2]); */
         result[0] = 0;
         result[1] = 0;
         result[2] = 0;
         /* showGyr(); */
+
+        getGY953Result(fd, 2, magCommand, result);
+        mag_x = (result[0] / (float)GY953MAGTRANS) - magOffset_x;
+        mag_y = (result[1] / (float)GY953MAGTRANS) - magOffset_y;
+        mag_z = (result[2] / (float)GY953MAGTRANS) - magOffset_z;
+
+        result[0] = 0;
+        result[1] = 0;
+        result[2] = 0;
+        printf("mag_x = %.6f ", mag_x);
+        printf("mag_y = %.6f ", mag_y);
+        printf("mag_z = %.6f\n", mag_z);
         sleep(1);
         /* usleep(10000);   // 10ms */
     }
@@ -128,6 +148,12 @@ void getGyr(float *retGyrX, float *retGyrY, float *retGyrZ) {
     *retGyrX = acc_x;
     *retGyrY = acc_y;
     *retGyrZ = acc_z;
+}
+
+void getMag(float *retMagX, float *retMagY, float *retMagZ) {
+    *retMagX = mag_x;
+    *retMagY = mag_y;
+    *retMagZ = mag_z;
 }
 
 void showEulerAngle(void) {

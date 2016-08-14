@@ -11,6 +11,8 @@ void getAcc(float *retAccX, float *retAccY, float *retAccZ);
 
 void getGyr(float *retGyrX, float *retGyrY, float *retGyrZ);
 
+void getMag(float *retMagX, float *retMagY, float *retMagZ);
+
 void showEulerAngle(void);
 
 void showAcc(void);

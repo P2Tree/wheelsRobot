@@ -1,7 +1,11 @@
 #ifndef ATTITUDE_H_VJIKUSPZ
 #define ATTITUDE_H_VJIKUSPZ
 
-void showQuaternion();
+#define PI      3.14159265
+
+void showQuaternion(void);
+
+void showEuler(float y, float p, float r);
 
 void calculateEuler(float *yaw, float *pitch, float *roll);
 
