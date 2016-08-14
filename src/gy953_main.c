@@ -124,11 +124,9 @@ void *gy953Thread() {
         result[0] = 0;
         result[1] = 0;
         result[2] = 0;
-        printf("mag_x = %.6f ", mag_x);
-        printf("mag_y = %.6f ", mag_y);
-        printf("mag_z = %.6f\n", mag_z);
-        sleep(1);
-        /* usleep(10000);   // 10ms */
+        /* showMag(); */
+        /* sleep(1); */
+        usleep(5000);   // 5ms
     }
     gy953Close(fd);
     return (void *)0;
@@ -178,6 +176,12 @@ void showGyr(void) {
     printf("gyroscope x = %.6f ", gyr_x);
     printf("gyroscope y = %.6f ", gyr_y);
     printf("gyroscope z = %.6f\n", gyr_z);
+}
+
+void showMag(void) {
+    printf("magnetometer x = %.6f ", mag_x);
+    printf("magnetometer y = %.6f ", mag_y);
+    printf("magnetometer z - %.6f\n", mag_z);
 }
 
 void getAccAve(float acc_x, float acc_y, float acc_z) {

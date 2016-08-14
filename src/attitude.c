@@ -15,7 +15,7 @@ void *attitudeThread() {
     float accX, accY, accZ;
     float gyrX, gyrY, gyrZ;
     float magX, magY, magZ;
-    float radianGyrX, radianGyrY, radianGyrZ;
+    /* float radianGyrX, radianGyrY, radianGyrZ; */
     static float yaw, pitch, roll;
     static float q0, q1, q2, q3;
 
@@ -28,16 +28,17 @@ void *attitudeThread() {
         /* showGyr(); */
 
         // arguments of yaw pitch roll is unit of degress, should be convert to unit of radian
-        radianGyrX = (gyrX/180)*PI;
-        radianGyrY = (gyrY/180)*PI;
-        radianGyrZ = (gyrZ/180)*PI;
+        /* radianGyrX = (gyrX/180)*PI; */
+        /* radianGyrY = (gyrY/180)*PI; */
+        /* radianGyrZ = (gyrZ/180)*PI; */
         /* MahonyAHRSupdateIMU(radianGyrX, radianGyrY, radianGyrZ, accX, accY, accZ); */
         /* MahonyAHRSupdateIMU(gyrX, gyrY, gyrZ, accX, accY, accZ); */
         MahonyAHRSupdate(gyrX, gyrY, gyrZ, accX, accY, accZ, magX, magY, magZ);
 
         getQuaternion(&q0, &q1, &q2, &q3);
         showQuaternion();
-        sleep(1);
+        /* sleep(1); */
+        usleep(5000);   //5ms
         calculateEuler(&yaw, &pitch, &roll);
         /* showEuler(yaw, pitch, roll); */
 
@@ -52,7 +53,6 @@ void showQuaternion() {
 }
 
 void calculateEuler(float *yaw, float *pitch, float *roll) {
-
     *yaw = atan2(2*q1*q2 + 2*q0*q3, -2*q2*q2 - 2*q3*q3 + 1) * 57.3;  // yaw
     *pitch = asin(2*q1*q3 + 2*q0*q2) * 57.3;     //pitch
     *roll = atan2(2*q2*q3 + 2*q0*q1, -2*q1*q1 - 2*q2*q2 + 1) * 57.3;    // roll

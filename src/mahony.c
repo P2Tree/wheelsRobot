@@ -3,10 +3,23 @@
 //=====================================================================================================
 //
 // Madgwick's implementation of Mayhony's AHRS algorithm.
-// See: http://
-#define sampleFreq  233.1f          // sample frequency in Hz
-#define twoKpDef    (2.0f * 0.5f)   // 2 * proportional gain
-#define twoKiDef    (2.0f * 1.0f)   // 2 * integral gain
+// See: http://www.x-io.co.uk/node/8#open_source_ahrs_and_imu_algorithms
+//
+// ===================================================================================================
+
+
+//---------------------------------------------------------------------------------------------------
+// Header files
+
+#include "mahony.h"
+#include <math.h>
+
+//--------------------------------------------------------------------------------------------------
+// Definitions
+
+#define sampleFreq  200.0f          // sample frequency in Hz
+#define twoKpDef    (2.0f * 0.4f)   // 2 * proportional gain
+#define twoKiDef    (2.0f * 0.000000f)   // 2 * integral gain
 
 //---------------------------------------------------------------------------------------------------
 // Variable definitions

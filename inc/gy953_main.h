@@ -21,6 +21,8 @@ void showOrigin(float originx, float originy, float originz);
 
 void showGyr(void);
 
+void showMag(void);
+
 void getAccAve(float acc_x, float acc_y, float acc_z);
 
 void *gy953Thread(void);

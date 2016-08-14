@@ -8,13 +8,13 @@
  ***************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <termios.h>
 #include <memory.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 #include "cy30_com.h"
-#include <stdlib.h>
 
 /**
  * ** LOCAL FUNCTIONS DECLARATION
