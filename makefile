@@ -35,6 +35,9 @@ cleanall :
 	-rm -rf $(BIN_TAG) $(OBJ)
 
 install :
-	./tools/autoftp.sh
+#	./tools/autoftp.sh
+#
+# now use sftp to deploy binary program
+	./tools/autosftp.sh
 
 

@@ -34,9 +34,9 @@ volatile static float acc_z = 0.0;
 
 /* accelerometer data static shift offset value, should measure them
  * in a statical and stability state.*/
- static float accOffset_x = -0.006537;
- static float accOffset_y = -0.105023;
- static float accOffset_z = -0.006095;
+ /* static float accOffset_x = -0.006537; */
+ /* static float accOffset_y = -0.105023; */
+ /* static float accOffset_z = -0.006095; */
 
 /**
  * three axis gyroscope data.
@@ -49,16 +49,16 @@ volatile static float gyr_y = 0.0;
 volatile static float gyr_z = 0.0;
 
 /* same as accelerometer offset data */
- static float gyrOffset_x = 0.0;
- static float gyrOffset_y = 0.0;
- static float gyrOffset_z = 0.0;
+ /* static float gyrOffset_x = 0.0; */
+ /* static float gyrOffset_y = 0.0; */
+ /* static float gyrOffset_z = 0.0; */
 
 volatile static float mag_x = 0.0;
 volatile static float mag_y = 0.0;
 volatile static float mag_z = 0.0;
-static float magOffset_x = 0.0;
-static float magOffset_y = 0.0;
-static float magOffset_z = 0.0;
+/* static float magOffset_x = 0.0; */
+/* static float magOffset_y = 0.0; */
+/* static float magOffset_z = 0.0; */
 
 // command arguments
 static unsigned char eulerCommand[3];

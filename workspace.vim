@@ -1,4 +1,8 @@
-set path+=.,~/forlinx/car/robot/**
+" ===== 系统路径 ====="
+set path=.,~/forlinx/car/robot/**
+
+" ----- ctags设置 -----"
+set tags+=~/forlinx/car/robot/tags
 
 " ===== 插件相关 ====="
 "

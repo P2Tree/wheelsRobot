@@ -13,7 +13,7 @@
 /**
  * ** ARGUMENTS
  */
-#define READLEN                     12      // The max read string length, and you know, it will catch 11 bits data, the last one bit is \n
+#define READLEN                     11      // The max read string length, and you know, it will catch 11 bits data, the last one bit is \n
 
 
 /**
@@ -121,6 +121,8 @@ typedef struct wrbuffer{
  * @func    cy30Init        initialization cy30 code module
  * @param   port            uart port name
  * @retval  int             0 is down
+ *                          -1 is open port error
+ *                          -2 is create command error
  * */
 int cy30Init(const char *port, wrBuffer *devBuffer);
 

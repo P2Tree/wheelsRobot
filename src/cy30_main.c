@@ -22,13 +22,19 @@ void *cy30Thread() {
     int fd;
     const char *port = "/dev/ttymxc3";
 
+#ifdef DEBUG_CY30
+    printf("debug mode is on\n");
+#endif
     wrBuffer devBuffer;
 
     DistanceContainer container;
+    int i;
 
     fd = cy30Init(port, &devBuffer);
-    if (fd > 0)
+    if (fd > 0) {
         printf("cy30 init down. port: %s, fd = %d\n", port, fd);
+        printf("cy30 command construct down. cmdlen = %d\n", devBuffer.cmdlen);
+    }
     else if (-1 == fd) {
         printf("cy30 init open port error.\n");
         pthread_exit((void*)1);
@@ -39,7 +45,9 @@ void *cy30Thread() {
     }
 
     while(1) {
-        cy30GetDistance(fd, &devBuffer, &container, MeasureOnce);
+        if ( 0 != cy30GetDistance(fd, &devBuffer, &container, MeasureOnce)) {
+            continue;
+        }
         sensorDistance = container.distance;
         printf("CY30 sensor: %.3f\n", container.distance);
 

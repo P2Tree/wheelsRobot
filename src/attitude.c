@@ -8,7 +8,7 @@
 #include "gy953_main.h"
 #include "mahony.h"
 
-volatile static float senYaw, senPitch, senRoll;     // euler angle output from sensor dircetly
+static float senYaw, senPitch, senRoll;     // euler angle output from sensor dircetly
 
 void *attitudeThread() {
     /* float accX, accY, accZ; */

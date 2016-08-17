@@ -89,10 +89,12 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
         perror("Backup SerialSetting");
         return -1;
     }
+    newtio.c_cflag = 0;
+    newtio.c_iflag = 0;
+    newtio.c_lflag = 0;
+    newtio.c_oflag = 0;
 
     newtio.c_cflag |= CLOCAL | CREAD;
-    newtio.c_iflag &= ~(INPCK | ISTRIP     // close parity bits setting
-                | IUCLC);    // close auto case change
 
     switch(nBits) {
     case 7:
@@ -140,6 +142,7 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
         newtio.c_cflag &= ~CSTOPB;        // stop 1 bit
     else if ( 2 == nStop)
         newtio.c_cflag |= CSTOPB;        // stop 2 bits
+
     newtio.c_cc[VTIME] = 0;                // waitting time
     newtio.c_cc[VMIN] = 0;                // min receive data
 
@@ -204,19 +207,16 @@ int cy30Init(const char *port, wrBuffer *devBuffer) {
     int fd;
     fd = uartInit(port);
     if (-1 == fd) {
-        printf("cy30 uart init error.\n");
         return -1;
     }
 
     (*devBuffer).cmdlen = cy30ConstructCommand(Measure, 0x80, MeasureOnce, &(*devBuffer).command);
 
     if ((*devBuffer).cmdlen > 0)
-        printf("cy30 command construct down. cmdlen = %d\n", (*devBuffer).cmdlen);
+        return fd;
     else {
-        printf("cy30 command construct error.\n");
         return -2;
     }
-    return fd;
 }
 
 int cy30ConstructCommand(Mode mode, unsigned char address, Action action, unsigned char **cmd ) {
@@ -300,7 +300,11 @@ int cy30GetData(int fd, wrBuffer *devBuffer) {
 
     tcflush(fd, TCOFLUSH);
     write(fd, (*devBuffer).command, (*devBuffer).cmdlen);
-    sleep(2);
+    /* sleep(2); */
+    usleep(100000);     //100ms limited miniral time delay
+    /* cpu have enough time to get data from uart interface, but sensor don't have a faster
+     * speed to measure distance and transfer date to cpu, in user manual of sensor, every
+     * measure time delay is 0.005s ~ 1s, so 100ms delay is safe for data. */
     (*devBuffer).readlen = read(fd, (*devBuffer).readData, READLEN);
 #ifdef  DEBUG_CY30
     printf("readlen = %d\n", (*devBuffer).readlen);
@@ -312,8 +316,9 @@ int cy30GetData(int fd, wrBuffer *devBuffer) {
 #endif
     tcflush(fd, TCIFLUSH);
 
-    if (READLEN != ((*devBuffer).readlen+1)) {
+    if (READLEN != ((*devBuffer).readlen)) {
         /* printf("sensor fd = %d read no data\n", fd); */
+        memset((*devBuffer).readData, 0, (*devBuffer).readlen*sizeof(unsigned char));
         return -1;
     }
     return 0;
@@ -340,18 +345,9 @@ int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action a
     printf("check cs down\n");
 #endif
     switch(action) {
-        case ReadArguments : break;
-        case ReadMachineNum : break;
-        case SetAddress : break;
-        case CalibrateDistance : break;
-        case SetMeaInterver : break;
-        case SetPosition : break;
-        case SetRange : break;
-        case SetFrequence : break;
-        case SetResolution : break;
-        case SetMeasureInBoot : break;
-        case MeasureOnceInBuffer : break;
-        case ReadBuffer : break;
+        case ReadArguments : break; case ReadMachineNum : break; case SetAddress : break; case CalibrateDistance : break;
+        case SetMeaInterver : break; case SetPosition : break; case SetRange : break; case SetFrequence : break;
+        case SetResolution : break; case SetMeasureInBoot : break; case MeasureOnceInBuffer : break; case ReadBuffer : break;
         case MeasureOnce :
             if (!(RECEIVE_READONCE == origin[2]))
                 return -1;
@@ -386,15 +382,16 @@ int cy30GetDistance(int fd, wrBuffer *devBuffer, DistanceContainer *container, A
         }
         else {
             printf("CY30 sensor distance error data\n");
-            return -2;
+            return -1;
         }
-        memset((*devBuffer).readData, 0, 11*sizeof(unsigned char));
+        memset((*devBuffer).readData, 0, (*devBuffer).readlen*sizeof(unsigned char));
         return 0;
     }
-    else {
-        printf("CY30 sensor distance no data\n");
-        return -1;
-    }
+    /* else {
+     *     printf("CY30 sensor distance no data\n");
+     *     return -2;
+     * } */
+    return -2;
 }
 
 
