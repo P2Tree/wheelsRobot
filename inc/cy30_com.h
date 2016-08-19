@@ -14,7 +14,9 @@
  * ** ARGUMENTS
  */
 #define READLEN                     11      // The max read string length, and you know, it will catch 11 bits data, the last one bit is \n
+#define COMMANDLEN                  5       // majority of commands is in 5 bytes, and others is in 4 bytes
 
+#define SENSORADDRESS1              0x80    // cy30 sensor address, default is 0x80
 
 /**
  * ** PARAMENTS
@@ -105,16 +107,24 @@ typedef enum {
  * ** CONTAINER
  */
 
-typedef struct container{
-    unsigned char address;
-    float distance;
+/**
+* Argument for save distance getting from sensor and its address of sensor, it is a argument for using.
+* Every sensor have only one container
+* */
+typedef struct {
+    unsigned char address;      // address of sensor which getting from
+    float distance;             // distance data from sensor
 }DistanceContainer;
 
-typedef struct wrbuffer{
-    unsigned char *command; // send to sensor
-    unsigned int cmdlen;             // command length
+/**
+* Argument for save command to sensor and receive data from sensor, it is a argument for communication.
+* You can have different command with different wrBuffer.
+* */
+typedef struct {
+    unsigned char command[COMMANDLEN];         // send to sensor
+    unsigned int cmdlen;            // command length
     unsigned char readData[READLEN];// receive from sensor
-    unsigned int readlen;
+    unsigned int readlen;           // receive data length
 }wrBuffer;
 
 /**
@@ -124,18 +134,18 @@ typedef struct wrbuffer{
  *                          -1 is open port error
  *                          -2 is create command error
  * */
-int cy30Init(const char *port, wrBuffer *devBuffer);
+int cy30Init(const char *port);
 
 /**
  * @func    cy30ConstructCommand: to construct command, full command
  * @param   mode            Mode: Depoly or Measure
  * @param   address         address of sensor
  * @param   action          Action: one of action in Action
- * @param   command         return command
- * @retval                  return length of command, -1 is fault
+ * @param   buffer          buffer of wrBuffer, is a pine, result will save to there
+ * @retval                  0 is done, -1 is fault to construct
  *
  */
-int cy30ConstructCommand(Mode mode, unsigned char address, Action action, unsigned char **cmd );
+int cy30ConstructCommand(Mode mode, unsigned char address, Action action, wrBuffer *buffer);
 
 /**
  * @func    cy30DistanceMultiple    contain catch distance from cy30 sensor with multiple devices, two devices, NOT GOOD ENOUGH TO USE
@@ -156,15 +166,21 @@ int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buf
 int cy30GetData(int fd, wrBuffer *devBuffer);
 
 /**
- * cy30ResultProcess: used to analysis result recieved
+ * cy30DistanceProcess:       used to analysis DISTANCE  result
  * @param   container       a struct form argument to save distance and address
  * @param   origin          received data
  * @param   len             length of received data
  * @param   action          which action return to origin
  * @origin                  0 is down
  */
-int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action action);
+int cy30DistanceProcess(DistanceContainer *container, wrBuffer buffer, Action action);
 
-int cy30GetDistance(int fd, wrBuffer *devBuffer, DistanceContainer *container, Action action);
+/**
+ * cy30GetDistance:         used to get distance from sensor
+ * @param   fd              file descriptor of sensor uart port
+ * @param   container       a struct form argument to save distance and address
+ * @param   action          action of get distance , including MEASUREONCE, MEASURECONTINUE and so on.
+ */
+int cy30GetDistance(int fd, DistanceContainer *container, Action action);
 
 #endif  // CY30-COM

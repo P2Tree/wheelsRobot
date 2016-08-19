@@ -15,25 +15,22 @@
 #include "cy30_com.h"
 #include "cy30_main.h"
 
-// sensor distance result
-volatile static float sensorDistance = 0.0;
+/* including sensor distance (container.distance) and sensor address (container.address) */
+DistanceContainer container1 = {SENSORADDRESS1, 0};
 
 void *cy30Thread() {
     int fd;
     const char *port = "/dev/ttymxc3";
 
 #ifdef DEBUG_CY30
-    printf("debug mode is on\n");
+    printf("cy30 debug mode is on\n");
 #endif
-    wrBuffer devBuffer;
 
-    DistanceContainer container;
-    int i;
-
-    fd = cy30Init(port, &devBuffer);
+    /* cy30 initialize */
+    /* including open uart port; construct command; */
+    fd = cy30Init(port);
     if (fd > 0) {
         printf("cy30 init down. port: %s, fd = %d\n", port, fd);
-        printf("cy30 command construct down. cmdlen = %d\n", devBuffer.cmdlen);
     }
     else if (-1 == fd) {
         printf("cy30 init open port error.\n");
@@ -44,15 +41,15 @@ void *cy30Thread() {
         pthread_exit((void*)1);
     }
 
+    /* LOOP */
     while(1) {
-        if ( 0 != cy30GetDistance(fd, &devBuffer, &container, MeasureOnce)) {
+        // get sensor 1 distance
+        if ( 0 != cy30GetDistance(fd, &container1, MeasureOnce)) {
             continue;
         }
-        sensorDistance = container.distance;
-        printf("CY30 sensor: %.3f\n", container.distance);
+        printf("CY30 sensor: %.3f\n", container1.distance);
 
     }
-    free(devBuffer.command);
     close(fd);
     return (void*)0;
 }

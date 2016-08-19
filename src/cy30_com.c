@@ -17,6 +17,11 @@
 #include "cy30_com.h"
 
 /**
+ * ** LOCAL ARGUMENT
+ */
+wrBuffer distanceBuf[1];
+
+/**
  * ** LOCAL FUNCTIONS DECLARATION
  */
 
@@ -203,59 +208,49 @@ static float calculateDistance(unsigned char * originDist) {
         (float)(originDist[5] - '0')*0.01 + (float)(originDist[6] - '0')*0.001;
 }
 
-int cy30Init(const char *port, wrBuffer *devBuffer) {
+int cy30Init(const char *port) {
     int fd;
+    int ret;
     fd = uartInit(port);
     if (-1 == fd) {
         return -1;
     }
 
-    (*devBuffer).cmdlen = cy30ConstructCommand(Measure, 0x80, MeasureOnce, &(*devBuffer).command);
+    ret = cy30ConstructCommand(Measure, SENSORADDRESS1, MeasureOnce, &distanceBuf[0]);
 
-    if ((*devBuffer).cmdlen > 0)
+    if (0 == ret)
         return fd;
     else {
         return -2;
     }
 }
 
-int cy30ConstructCommand(Mode mode, unsigned char address, Action action, unsigned char **cmd ) {
+int cy30ConstructCommand(Mode mode, unsigned char address, Action action, wrBuffer *buffer) {
     unsigned int len = 0;
     unsigned char cs = 0x00;
     switch(action) {
-        case ReadArguments : break;
-        case ReadMachineNum : break;
-        case SetAddress : break;
-        case CalibrateDistance : break;
-        case SetMeaInterver : break;
-        case SetPosition : break;
-        case SetRange : break;
-        case SetFrequence : break;
-        case SetResolution : break;
-        case SetMeasureInBoot : break;
-        case MeasureOnceInBuffer : break;
-        case ReadBuffer : break;
+        case ReadArguments : break; case ReadMachineNum : break; case SetAddress : break; case CalibrateDistance : break;
+        case SetMeaInterver : break; case SetPosition : break; case SetRange : break; case SetFrequence : break;
+        case SetResolution : break; case SetMeasureInBoot : break; case MeasureOnceInBuffer : break; case ReadBuffer : break;
         case MeasureOnce :
-            len = 4;
-            *cmd = (unsigned char*)calloc(len, sizeof(unsigned char));
-            (*cmd)[0] = address;
-            (*cmd)[1] = MEASURE_READ;
-            (*cmd)[2] = MEASURE_READ_READONCE;
+            (*buffer).command[0] = address;
+            (*buffer).command[1] = MEASURE_READ;
+            (*buffer).command[2] = MEASURE_READ_READONCE;
             len = 3;
             break;
-        case MeasureContinuous : break;
-        case SetLaser : break;
-        case Shutdown : break;
+        case MeasureContinuous : break; case SetLaser : break; case Shutdown : break;
         default:
             printf("Constructing command: Error Action\n");
             return -1;
     }
-    cs = calculateCS(*cmd, len);
-    (*cmd)[len] = cs;
+    cs = calculateCS((*buffer).command, len);
+    (*buffer).command[len] = cs;
     len += 1;
 
-    if (len > 0)
-        return len;
+    if (len > 0){
+        (*buffer).cmdlen = len;
+        return 0;
+    }
     else {
         printf("Construct command fault\n");
         return -1;
@@ -288,61 +283,59 @@ int cy30DistanceMultiple(int fd1, int fd2, wrBuffer dev1Buffer, wrBuffer dev2Buf
     return ret;
 }
 
-int cy30GetData(int fd, wrBuffer *devBuffer) {
+int cy30GetData(int fd, wrBuffer *buffer) {
 #ifdef  DEBUG_CY30
     int i;
-    printf("commandlen = %d\n", (*devBuffer).cmdlen);
+    printf("commandlen = %d\n", (*buffer).cmdlen);
     printf("command is: ");
     for (i=0; i<4; i++)
-        printf("%02x ", (*devBuffer).command[i]);
+        printf("%02x ", (*buffer).command[i]);
     printf("\n");
 #endif
 
     tcflush(fd, TCOFLUSH);
-    write(fd, (*devBuffer).command, (*devBuffer).cmdlen);
+    write(fd, (*buffer).command, (*buffer).cmdlen);
     /* sleep(2); */
     usleep(100000);     //100ms limited miniral time delay
     /* cpu have enough time to get data from uart interface, but sensor don't have a faster
      * speed to measure distance and transfer date to cpu, in user manual of sensor, every
      * measure time delay is 0.005s ~ 1s, so 100ms delay is safe for data. */
-    (*devBuffer).readlen = read(fd, (*devBuffer).readData, READLEN);
+    (*buffer).readlen = read(fd, (*buffer).readData, READLEN);
 #ifdef  DEBUG_CY30
-    printf("readlen = %d\n", (*devBuffer).readlen);
+    printf("readlen = %d\n", (*buffer).readlen);
     printf("READLEN = %d\n", (unsigned int)READLEN);
     printf("receive data is: ");
-    for (i=0; i<(*devBuffer).readlen; i++)
-        printf("%x ", (*devBuffer).readData[i]);
+    for (i=0; i<(*buffer).readlen; i++)
+        printf("%x ", (*buffer).readData[i]);
     printf("\n");
 #endif
     tcflush(fd, TCIFLUSH);
 
-    if (READLEN != ((*devBuffer).readlen)) {
+    if (READLEN != ((*buffer).readlen)) {
         /* printf("sensor fd = %d read no data\n", fd); */
-        memset((*devBuffer).readData, 0, (*devBuffer).readlen*sizeof(unsigned char));
+        memset((*buffer).readData, 0, (*buffer).readlen*sizeof(unsigned char));
         return -1;
     }
     return 0;
 }
 
-int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action action) {
+/* check distance data */
+int cy30DistanceProcess(DistanceContainer *container, wrBuffer buffer, Action action) {
     unsigned char originDist[7];
-    unsigned char *origin = devBuffer.readData;
-    unsigned int len = devBuffer.readlen;
+    unsigned char *origin = buffer.readData;
+    unsigned int len = buffer.readlen;
     int i;
     // E R R - -
     if (0x45 == origin[3] && 0x52 == origin[4] && 0x52 == origin[5]) {
         /* printf("wrong distance: receive ERR message.\n"); */
         return -1;
     }
-#ifdef DEBUG_CY30
-    printf("check data down\n");
-#endif
     if (checkCS(origin, len)) {
         printf("Error: receive error result, checkCS stop.\n");
         return -2;
     }
 #ifdef DEBUG_CY30
-    printf("check cs down\n");
+    printf("check data down\n");
 #endif
     switch(action) {
         case ReadArguments : break; case ReadMachineNum : break; case SetAddress : break; case CalibrateDistance : break;
@@ -366,16 +359,20 @@ int cy30ResultProcess(DistanceContainer *container, wrBuffer devBuffer, Action a
     return 0;
 }
 
-int cy30GetDistance(int fd, wrBuffer *devBuffer, DistanceContainer *container, Action action) {
+int cy30GetDistance(int fd, DistanceContainer *container, Action action) {
     int ret = 0;
-    ret = cy30GetData(fd, devBuffer);
+    int devNum = 0;
+    if ((*container).address == SENSORADDRESS1)
+        devNum = 0;
+
+    ret = cy30GetData(fd, &distanceBuf[devNum]);
 #ifdef  DEBUG_CY30
     printf("cy30GetData ret = %d\n", ret);
 #endif
     // catch data
     if ( !ret ) {
         // process data
-        if (0 == cy30ResultProcess(container, *devBuffer, MeasureOnce)) {
+        if (0 == cy30DistanceProcess(container, distanceBuf[devNum], action)) {
 #ifdef  DEBUG_CY30
             printf("address is 0x%02X , distance is %.3f\n", (*container).address, (*container).distance);
 #endif
@@ -384,7 +381,7 @@ int cy30GetDistance(int fd, wrBuffer *devBuffer, DistanceContainer *container, A
             printf("CY30 sensor distance error data\n");
             return -1;
         }
-        memset((*devBuffer).readData, 0, (*devBuffer).readlen*sizeof(unsigned char));
+        memset(distanceBuf[devNum].readData, 0, distanceBuf[devNum].readlen*sizeof(unsigned char));
         return 0;
     }
     /* else {
