@@ -90,6 +90,11 @@ static int setOpt(int fd, int nSpeed, int nBits, char nEvent, int nStop) {
         return -1;
     }
 
+    newtio.c_cflag = 0;
+    newtio.c_iflag = 0;
+    newtio.c_oflag = 0;
+    newtio.c_lflag = 0;
+    
     newtio.c_cflag |= CLOCAL | CREAD;
     newtio.c_iflag &= ~(INPCK | ISTRIP     // close parity bits setting
                 | IUCLC);    // close auto case change
